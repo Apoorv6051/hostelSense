@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Login</title>
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+  <div class="login-page">
+    <!-- Left brand panel -->
+    <aside class="brand-panel">
+      <div class="brand-panel-inner">
+        <div class="logo">
+          <div class="logo-mark">HS</div>
+          <div class="logo-text">
+            <strong>HostelSense</strong>
+            <span>Smart Hostel Safety</span>
+          </div>
+        </div>
+
+        <div class="brand-copy">
+          <h1>Secure access for every hostel role</h1>
+          <p>
+            Sign in as a student, parent, or warden to manage attendance,
+            visitors, and real-time hostel safety.
+          </p>
+        </div>
+
+        <ul class="brand-points">
+          <li>
+            <span class="dot"></span>
+            Face-verified student attendance
+          </li>
+          <li>
+            <span class="dot"></span>
+            Digital visitor approval &amp; gate passes
+          </li>
+          <li>
+            <span class="dot"></span>
+            Live headcount for wardens &amp; parents
+          </li>
+        </ul>
+
+        <div class="brand-footer">College hostel · Smart campus</div>
+      </div>
+    </aside>
+
+    <!-- Right login form -->
+    <main class="form-panel">
+      <div class="form-card">
+        <header class="form-header">
+          <h2>Welcome back</h2>
+          <p>Choose your role and sign in to continue</p>
+        </header>
+
+        <!-- Role selector -->
+        <div class="role-group" role="radiogroup" aria-label="Login role">
+          <button type="button" class="role-option active" data-role="student" aria-pressed="true">
+            <span class="role-icon student">🎓</span>
+            <span class="role-label">Student</span>
+          </button>
+          <button type="button" class="role-option" data-role="parent" aria-pressed="false">
+            <span class="role-icon parent">👨‍👩‍👧</span>
+            <span class="role-label">Parent</span>
+          </button>
+          <button type="button" class="role-option" data-role="warden" aria-pressed="false">
+            <span class="role-icon warden">🛡️</span>
+            <span class="role-label">Warden</span>
+          </button>
+        </div>
+
+        <form id="login-form" novalidate>
+          <div class="field">
+            <label for="identifier" id="identifier-label">Roll number</label>
+            <div class="input-wrap">
+              <span class="input-icon" id="identifier-icon" aria-hidden="true">
+                <!-- Roll number icon (student default) -->
+                <svg class="icon-roll" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <path d="M7 8h10M7 12h6M7 16h8"/>
+                </svg>
+                <svg class="icon-email hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <input
+                id="identifier"
+                name="identifier"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]{13}"
+                maxlength="13"
+                placeholder="e.g. 2401641520038"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <p class="field-hint" id="identifier-hint">13-digit college roll number</p>
+          </div>
+
+          <div class="field">
+            <div class="label-row">
+              <label for="password">Password</label>
+              <a class="link-muted" href="#" tabindex="-1">Forgot password?</a>
+            </div>
+            <div class="input-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="toggle-pass" id="toggle-pass" aria-label="Show password">
+                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="eye-closed hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <label class="remember">
+            <input type="checkbox" id="remember" />
+            <span>Remember me on this device</span>
+          </label>
+
+          <div id="error" class="error-box hidden" role="alert"></div>
+
+          <button type="submit" class="btn-submit" id="btn-submit">
+            <span class="btn-text">Sign in as Student</span>
+            <span class="btn-arrow" aria-hidden="true">→</span>
+          </button>
+        </form>
+
+        <p class="form-footnote">
+          Demo credentials appear after you pick a role.
+        </p>
+        <div class="demo-hint" id="demo-hint">
+          <span class="demo-tag">Demo</span>
+          <code id="demo-creds">2401641520038 / student123</code>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const roles = {
+      student: {
+        label: "Student",
+        idType: "roll",
+        fieldLabel: "Roll number",
+        placeholder: "e.g. 2401641520038",
+        hint: "13-digit college roll number",
+        creds: "2401641520038 / student123",
+        identifier: "2401641520038",
+        password: "student123",
+      },
+      parent: {
+        label: "Parent",
+        idType: "email",
+        fieldLabel: "Email address",
+        placeholder: "you@email.com",
+        hint: "",
+        creds: "suresh.parent@email.com / parent123",
+        identifier: "suresh.parent@email.com",
+        password: "parent123",
+      },
+      warden: {
+        label: "Warden",
+        idType: "email",
+        fieldLabel: "Email address",
+        placeholder: "warden@college.edu",
+        hint: "",
+        creds: "warden@college.edu / warden123",
+        identifier: "warden@college.edu",
+        password: "warden123",
+      },
+    };
+
+    let selectedRole = "student";
+
+    const roleButtons = document.querySelectorAll(".role-option");
+    const btnText = document.querySelector(".btn-text");
+    const demoCreds = document.getElementById("demo-creds");
+    const idLabel = document.getElementById("identifier-label");
+    const idInput = document.getElementById("identifier");
+    const idHint = document.getElementById("identifier-hint");
+    const iconRoll = document.querySelector(".icon-roll");
+    const iconEmail = document.querySelector(".icon-email");
+    const passwordInput = document.getElementById("password");
+    const errorBox = document.getElementById("error");
+    const form = document.getElementById("login-form");
+    const togglePass = document.getElementById("toggle-pass");
+
+    function applyRole(role) {
+      selectedRole = role;
+      const meta = roles[role];
+      const isRoll = meta.idType === "roll";
+
+      roleButtons.forEach((btn) => {
+        const active = btn.dataset.role === role;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+
+      btnText.textContent = `Sign in as ${meta.label}`;
+      demoCreds.textContent = meta.creds;
+
+      // Switch identifier field: roll no (student) vs email (parent/warden)
+      idLabel.textContent = meta.fieldLabel;
+      idInput.placeholder = meta.placeholder;
+      idInput.value = meta.identifier;
+      idInput.type = isRoll ? "text" : "email";
+      idInput.inputMode = isRoll ? "numeric" : "email";
+      idInput.maxLength = isRoll ? 13 : 254;
+      if (isRoll) {
+        idInput.setAttribute("pattern", "[0-9]{13}");
+      } else {
+        idInput.removeAttribute("pattern");
+      }
+
+      iconRoll.classList.toggle("hidden", !isRoll);
+      iconEmail.classList.toggle("hidden", isRoll);
+
+      if (meta.hint) {
+        idHint.textContent = meta.hint;
+        idHint.classList.remove("hidden");
+      } else {
+        idHint.textContent = "";
+        idHint.classList.add("hidden");
+      }
+
+      passwordInput.value = meta.password;
+      errorBox.classList.add("hidden");
+      errorBox.textContent = "";
+    }
+
+    roleButtons.forEach((btn) => {
+      btn.addEventListener("click", () => applyRole(btn.dataset.role));
+    });
+
+    // Keep roll number digits-only while typing
+    idInput.addEventListener("input", () => {
+      if (roles[selectedRole].idType !== "roll") return;
+      const digits = idInput.value.replace(/\D/g, "").slice(0, 13);
+      if (idInput.value !== digits) idInput.value = digits;
+    });
+
+    togglePass.addEventListener("click", () => {
+      const show = passwordInput.type === "password";
+      passwordInput.type = show ? "text" : "password";
+      togglePass.querySelector(".eye-open").classList.toggle("hidden", show);
+      togglePass.querySelector(".eye-closed").classList.toggle("hidden", !show);
+      togglePass.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const identifier = idInput.value.trim();
+      const password = passwordInput.value;
+      const meta = roles[selectedRole];
+      const isRoll = meta.idType === "roll";
+
+      if (!identifier || !password) {
+        errorBox.textContent = isRoll
+          ? "Please enter both roll number and password."
+          : "Please enter both email and password.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      if (isRoll && !/^\d{13}$/.test(identifier)) {
+        errorBox.textContent = "Roll number must be exactly 13 digits (e.g. 2401641520038).";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      // Design-only page: validate against demo credentials
+      const idMatch = isRoll
+        ? identifier === meta.identifier
+        : identifier.toLowerCase() === meta.identifier.toLowerCase();
+
+      if (idMatch && password === meta.password) {
+        errorBox.classList.add("hidden");
+        btnText.textContent = "Signed in ✓";
+        document.getElementById("btn-submit").classList.add("success");
+        // Login page only — no redirect to other modules
+        setTimeout(() => {
+          btnText.textContent = `Sign in as ${meta.label}`;
+          document.getElementById("btn-submit").classList.remove("success");
+        }, 1800);
+      } else {
+        errorBox.textContent = isRoll
+          ? "Invalid roll number or password. Use the demo details below."
+          : `Invalid ${meta.label.toLowerCase()} credentials. Use the demo details below.`;
+        errorBox.classList.remove("hidden");
+      }
+    });
+
+    applyRole("student");
+  </script>
+</body>
+</html>
