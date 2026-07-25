@@ -300,28 +300,53 @@
         btnText.textContent = "Signed in ✓";
         document.getElementById("btn-submit").classList.add("success");
 
-        // Student goes to their dashboard after login
-        if (selectedRole === "student") {
+        // Route each role to its portal after login
+        const destinations = {
+          student: {
+            key: "hs_student",
+            href: "student.html",
+            data: {
+              name: "Aarav Sharma",
+              roll: meta.identifier,
+              initials: "AS",
+              role: "student",
+            },
+          },
+          parent: {
+            key: "hs_parent",
+            href: "parent.html",
+            data: {
+              name: "Suresh Parent",
+              email: meta.identifier,
+              initials: "SP",
+              role: "parent",
+            },
+          },
+          warden: {
+            key: "hs_warden",
+            href: "warden.html",
+            data: {
+              name: "R. Verma",
+              email: meta.identifier,
+              initials: "RV",
+              role: "warden",
+            },
+          },
+        };
+
+        const dest = destinations[selectedRole];
+        if (dest) {
           try {
-            sessionStorage.setItem(
-              "hs_student",
-              JSON.stringify({
-                name: "Aarav Sharma",
-                roll: meta.identifier,
-                initials: "AS",
-                role: "student",
-              })
-            );
+            sessionStorage.setItem(dest.key, JSON.stringify(dest.data));
           } catch (_) {
             /* ignore storage errors */
           }
           setTimeout(() => {
-            window.location.href = "student.html";
+            window.location.href = dest.href;
           }, 700);
           return;
         }
 
-        // Parent / warden modules not built yet
         setTimeout(() => {
           btnText.textContent = `Sign in as ${meta.label}`;
           document.getElementById("btn-submit").classList.remove("success");

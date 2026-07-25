@@ -98,8 +98,8 @@
           </article>
           <article class="stat-card">
             <div class="stat-label">Open passes</div>
-            <div class="stat-value">1</div>
-            <div class="stat-meta warn">Pending warden approval</div>
+            <div class="stat-value" id="stat-open-passes">0</div>
+            <div class="stat-meta warn" id="stat-open-meta">No open requests</div>
           </article>
           <article class="stat-card">
             <div class="stat-label">Visitor requests</div>
@@ -155,13 +155,13 @@
               <h2>Quick actions</h2>
             </div>
             <div class="actions">
-              <button type="button" class="action-btn" data-action="pass">
+              <a class="action-btn" href="gate-pass.html" data-action="pass" style="text-decoration:none;">
                 <span class="action-icon" aria-hidden="true">🎫</span>
                 <span class="action-text">
                   <strong>Request gate pass</strong>
                   <span>Outing / home visit approval</span>
                 </span>
-              </button>
+              </a>
               <button type="button" class="action-btn" data-action="visitor">
                 <span class="action-icon" aria-hidden="true">👥</span>
                 <span class="action-text">
@@ -192,31 +192,9 @@
           <section class="card" id="passes">
             <div class="card-head">
               <h2>Gate passes</h2>
-              <a class="link-sm" href="#passes">View all</a>
+              <a class="link-sm" href="gate-pass.html">+ New pass</a>
             </div>
-            <ul class="list">
-              <li class="list-item">
-                <div class="list-item-main">
-                  <strong>Home visit — weekend</strong>
-                  <span>Sat 10:00 AM → Sun 8:00 PM · Parent approval done</span>
-                </div>
-                <span class="chip pending">Pending</span>
-              </li>
-              <li class="list-item">
-                <div class="list-item-main">
-                  <strong>City outing</strong>
-                  <span>Last Fri 4:00 PM → 8:30 PM</span>
-                </div>
-                <span class="chip approved">Approved</span>
-              </li>
-              <li class="list-item">
-                <div class="list-item-main">
-                  <strong>Medical appointment</strong>
-                  <span>Mar 12 · 11:00 AM → 2:00 PM</span>
-                </div>
-                <span class="chip approved">Completed</span>
-              </li>
-            </ul>
+            <ul class="list" id="pass-list"></ul>
           </section>
 
           <!-- Visitors + notices -->
@@ -297,6 +275,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="js/passes.js"></script>
   <script>
     // Demo student session (set from login page)
     const student = {
@@ -322,6 +301,49 @@
     document.getElementById("profile-name").textContent = student.name;
     document.getElementById("profile-roll").textContent = student.roll;
     document.getElementById("avatar").textContent = student.initials;
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderPasses() {
+      const list = passesForRoll(student.roll);
+      const open = list.filter((p) => overallStatus(p) === "pending");
+      document.getElementById("stat-open-passes").textContent = String(open.length);
+      document.getElementById("stat-open-meta").textContent = open.length
+        ? "Pending parent / warden approval"
+        : "No open requests";
+
+      const ul = document.getElementById("pass-list");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No gate passes yet. <a href="gate-pass.html">Request one</a></li>`;
+        return;
+      }
+
+      ul.innerHTML = list
+        .map((p) => {
+          const chipClass =
+            overallStatus(p) === "approved"
+              ? "approved"
+              : overallStatus(p) === "rejected"
+                ? "rejected"
+                : "pending";
+          return `<li class="list-item">
+            <div class="list-item-main">
+              <strong>${typeEmoji(p.type)} ${escapeHtml(p.typeLabel || "Gate pass")} — ${escapeHtml(p.destination)}</strong>
+              <span>${formatWhen(p.from)} → ${formatWhen(p.to)} · Parent: ${p.parentStatus} · Warden: ${p.wardenStatus}</span>
+            </div>
+            <span class="chip ${chipClass}">${statusLabel(p)}</span>
+          </li>`;
+        })
+        .join("");
+    }
+
+    renderPasses();
 
     // Mobile sidebar
     const sidebar = document.getElementById("sidebar");
@@ -350,7 +372,7 @@
     };
 
     document.querySelectorAll(".nav-item").forEach((item) => {
-      item.addEventListener("click", (e) => {
+      item.addEventListener("click", () => {
         const section = item.dataset.section;
         document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
         item.classList.add("active");
@@ -373,10 +395,11 @@
     }
 
     document.querySelectorAll(".action-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
         const action = btn.dataset.action;
+        if (action === "pass") return; // navigates to gate-pass.html
+        e.preventDefault();
         const messages = {
-          pass: "Gate pass form will open here (demo).",
           visitor: "Visitor invite form will open here (demo).",
           complaint: "Issue report form will open here (demo).",
           qr: "Student QR code would display here (demo).",
