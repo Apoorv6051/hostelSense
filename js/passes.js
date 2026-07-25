@@ -19,7 +19,7 @@ const DEFAULT_PASSES = [
   },
   {
     id: "gp-demo-2",
-    studentName: "Aarav Sharma",
+    studentName: "Apoorv Pal",
     roll: "2401641520038",
     type: "outing",
     typeLabel: "City outing",
