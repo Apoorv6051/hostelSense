@@ -299,7 +299,29 @@
         errorBox.classList.add("hidden");
         btnText.textContent = "Signed in ✓";
         document.getElementById("btn-submit").classList.add("success");
-        // Login page only — no redirect to other modules
+
+        // Student goes to their dashboard after login
+        if (selectedRole === "student") {
+          try {
+            sessionStorage.setItem(
+              "hs_student",
+              JSON.stringify({
+                name: "Aarav Sharma",
+                roll: meta.identifier,
+                initials: "AS",
+                role: "student",
+              })
+            );
+          } catch (_) {
+            /* ignore storage errors */
+          }
+          setTimeout(() => {
+            window.location.href = "student.html";
+          }, 700);
+          return;
+        }
+
+        // Parent / warden modules not built yet
         setTimeout(() => {
           btnText.textContent = `Sign in as ${meta.label}`;
           document.getElementById("btn-submit").classList.remove("success");
