@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Request Gate Pass</title>
+  <link rel="stylesheet" href="css/student.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Gate pass
+    </div>
+    <a class="menu-btn" href="student.html" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Request gate pass</h1>
+          <p>Fill details for outing, home visit, or medical leave</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="student.html">← Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="card form-card-wide">
+          <a class="back-link" href="student.html">← Student dashboard</a>
+
+          <div id="success" class="success-box hidden" role="status">
+            Gate pass submitted. Parent and warden will review it next.
+          </div>
+
+          <form id="pass-form" novalidate>
+            <div class="field full" style="margin-bottom: 1rem;">
+              <label>Pass type</label>
+              <div class="type-pills" role="radiogroup" aria-label="Pass type">
+                <button type="button" class="type-pill active" data-type="outing" aria-pressed="true">
+                  <span aria-hidden="true">🏙️</span>
+                  Outing
+                </button>
+                <button type="button" class="type-pill" data-type="home" aria-pressed="false">
+                  <span aria-hidden="true">🏠</span>
+                  Home visit
+                </button>
+                <button type="button" class="type-pill" data-type="medical" aria-pressed="false">
+                  <span aria-hidden="true">🏥</span>
+                  Medical
+                </button>
+                <button type="button" class="type-pill" data-type="other" aria-pressed="false">
+                  <span aria-hidden="true">📋</span>
+                  Other
+                </button>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="student-name">Student name</label>
+                <input id="student-name" type="text" readonly />
+              </div>
+              <div class="field">
+                <label for="roll">Roll number</label>
+                <input id="roll" type="text" readonly />
+              </div>
+              <div class="field">
+                <label for="from">Leaving from</label>
+                <input id="from" type="datetime-local" required />
+              </div>
+              <div class="field">
+                <label for="to">Return by</label>
+                <input id="to" type="datetime-local" required />
+              </div>
+              <div class="field full">
+                <label for="destination">Destination</label>
+                <input id="destination" type="text" placeholder="e.g. Home — Lucknow / City hospital" required />
+              </div>
+              <div class="field full">
+                <label for="reason">Reason</label>
+                <textarea id="reason" placeholder="Brief reason for leaving the hostel" required></textarea>
+                <span class="hint">Parent will review first, then the warden.</span>
+              </div>
+              <div class="field">
+                <label for="parent-contact">Parent contact</label>
+                <input id="parent-contact" type="email" value="suresh.parent@email.com" readonly />
+              </div>
+              <div class="field">
+                <label for="room">Room</label>
+                <input id="room" type="text" value="C-214 · Block C" readonly />
+              </div>
+            </div>
+
+            <div id="error" class="error-box hidden" role="alert"></div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="submit-btn">
+                Submit gate pass →
+              </button>
+              <a class="btn-secondary" href="student.html">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/passes.js"></script>
+  <script>
+    const student = { name: "Aarav Sharma", roll: "2401641520038" };
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) student.name = p.name;
+        if (p.roll) student.roll = p.roll;
+      }
+    } catch (_) {}
+
+    document.getElementById("student-name").value = student.name;
+    document.getElementById("roll").value = student.roll;
+
+    // Default times: tomorrow 10am → same day 8pm
+    const fromInput = document.getElementById("from");
+    const toInput = document.getElementById("to");
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(10, 0, 0, 0);
+    const end = new Date(start);
+    end.setHours(20, 0, 0, 0);
+    const toLocal = (d) => {
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    fromInput.value = toLocal(start);
+    toInput.value = toLocal(end);
+
+    let selectedType = "outing";
+    const typeLabels = {
+      outing: "City outing",
+      home: "Home visit",
+      medical: "Medical",
+      other: "Other",
+    };
+
+    document.querySelectorAll(".type-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedType = btn.dataset.type;
+        document.querySelectorAll(".type-pill").forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      });
+    });
+
+    const form = document.getElementById("pass-form");
+    const errorBox = document.getElementById("error");
+    const successBox = document.getElementById("success");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const destination = document.getElementById("destination").value.trim();
+      const reason = document.getElementById("reason").value.trim();
+      const from = fromInput.value;
+      const to = toInput.value;
+
+      if (!destination || !reason || !from || !to) {
+        errorBox.textContent = "Please fill destination, reason, and both date/time fields.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      if (new Date(to) <= new Date(from)) {
+        errorBox.textContent = "Return time must be after the leaving time.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      const pass = {
+        id: "gp-" + Date.now(),
+        studentName: student.name,
+        roll: student.roll,
+        type: selectedType,
+        typeLabel: typeLabels[selectedType] || "Gate pass",
+        destination,
+        reason,
+        from,
+        to,
+        parentStatus: "pending",
+        wardenStatus: "pending",
+        createdAt: new Date().toISOString(),
+      };
+
+      addPass(pass);
+
+      successBox.classList.remove("hidden");
+      document.getElementById("submit-btn").textContent = "Submitted ✓";
+      form.querySelectorAll("input:not([readonly]), textarea, .type-pill, button[type=submit]").forEach((el) => {
+        if (el.tagName === "BUTTON" && el.type === "submit") return;
+        if (el.classList.contains("type-pill")) el.disabled = true;
+        else if (el !== document.getElementById("submit-btn")) el.disabled = true;
+      });
+      document.getElementById("submit-btn").disabled = true;
+
+      setTimeout(() => {
+        window.location.href = "student.html#passes";
+      }, 1200);
+    });
+  </script>
+</body>
+</html>
