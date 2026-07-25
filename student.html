@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Student Dashboard</title>
+  <link rel="stylesheet" href="css/student.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      HostelSense
+    </div>
+    <button type="button" class="menu-btn" id="menu-btn" aria-label="Open menu">☰</button>
+  </div>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo-mark">HS</div>
+        <div class="brand-text">
+          <strong>HostelSense</strong>
+          <span>Student portal</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Student navigation">
+        <a class="nav-item active" href="#dashboard" data-section="dashboard">
+          <span class="nav-icon" aria-hidden="true">🏠</span>
+          Dashboard
+        </a>
+        <a class="nav-item" href="#attendance" data-section="attendance">
+          <span class="nav-icon" aria-hidden="true">✅</span>
+          Attendance
+        </a>
+        <a class="nav-item" href="#passes" data-section="passes">
+          <span class="nav-icon" aria-hidden="true">🎫</span>
+          Gate passes
+        </a>
+        <a class="nav-item" href="#visitors" data-section="visitors">
+          <span class="nav-icon" aria-hidden="true">👥</span>
+          Visitors
+        </a>
+        <a class="nav-item" href="#notices" data-section="notices">
+          <span class="nav-icon" aria-hidden="true">📢</span>
+          Notices
+        </a>
+        <a class="nav-item" href="#profile" data-section="profile">
+          <span class="nav-icon" aria-hidden="true">👤</span>
+          My profile
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="avatar">AS</div>
+          <div class="user-meta">
+            <strong id="sidebar-name">Aarav Sharma</strong>
+            <span id="sidebar-roll">2401641520038</span>
+          </div>
+        </div>
+        <button type="button" class="btn-logout" id="logout-btn">Log out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-sub">Welcome back — here’s your hostel overview</p>
+        </div>
+        <div class="topbar-right">
+          <span class="status-pill">
+            <span class="dot" aria-hidden="true"></span>
+            Inside hostel
+          </span>
+          <button type="button" class="icon-btn" id="notif-btn" aria-label="Notifications">
+            🔔
+            <span class="badge">2</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- Stats -->
+        <section class="stats" aria-label="Quick stats">
+          <article class="stat-card">
+            <div class="stat-label">Today’s status</div>
+            <div class="stat-value" style="color:#6ee7b7;">Present</div>
+            <div class="stat-meta good">Face verified · 07:42 AM</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">This month</div>
+            <div class="stat-value">96%</div>
+            <div class="stat-meta">Attendance rate</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Open passes</div>
+            <div class="stat-value">1</div>
+            <div class="stat-meta warn">Pending warden approval</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Visitor requests</div>
+            <div class="stat-value">0</div>
+            <div class="stat-meta">No active visitors today</div>
+          </article>
+        </section>
+
+        <div class="grid-2">
+          <!-- Attendance -->
+          <section class="card" id="attendance">
+            <div class="card-head">
+              <h2>Attendance today</h2>
+              <a class="link-sm" href="#attendance">Full history</a>
+            </div>
+
+            <div class="attendance-today">
+              <div class="attendance-icon" aria-hidden="true">📷</div>
+              <div class="attendance-info">
+                <strong>Checked in at main gate</strong>
+                <span>Face match successful · Block C entry · 07:42 AM</span>
+              </div>
+            </div>
+
+            <ul class="timeline">
+              <li>
+                <div class="time">07:42</div>
+                <div class="event">
+                  <strong>Entry <span class="tag in">IN</span></strong>
+                  <span>Main gate · face verified</span>
+                </div>
+              </li>
+              <li>
+                <div class="time">12:15</div>
+                <div class="event">
+                  <strong>Mess scan <span class="tag in">IN</span></strong>
+                  <span>Lunch · Block C mess</span>
+                </div>
+              </li>
+              <li>
+                <div class="time">—</div>
+                <div class="event">
+                  <strong>Evening headcount</strong>
+                  <span>Not yet · usually 9:00 PM</span>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Quick actions -->
+          <section class="card">
+            <div class="card-head">
+              <h2>Quick actions</h2>
+            </div>
+            <div class="actions">
+              <button type="button" class="action-btn" data-action="pass">
+                <span class="action-icon" aria-hidden="true">🎫</span>
+                <span class="action-text">
+                  <strong>Request gate pass</strong>
+                  <span>Outing / home visit approval</span>
+                </span>
+              </button>
+              <button type="button" class="action-btn" data-action="visitor">
+                <span class="action-icon" aria-hidden="true">👥</span>
+                <span class="action-text">
+                  <strong>Invite a visitor</strong>
+                  <span>Parent or guest entry request</span>
+                </span>
+              </button>
+              <button type="button" class="action-btn" data-action="complaint">
+                <span class="action-icon" aria-hidden="true">🛠️</span>
+                <span class="action-text">
+                  <strong>Report an issue</strong>
+                  <span>Room / mess / maintenance</span>
+                </span>
+              </button>
+              <button type="button" class="action-btn" data-action="qr">
+                <span class="action-icon" aria-hidden="true">📱</span>
+                <span class="action-text">
+                  <strong>Show student QR</strong>
+                  <span>For gate / mess scan backup</span>
+                </span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <div class="grid-2">
+          <!-- Gate passes -->
+          <section class="card" id="passes">
+            <div class="card-head">
+              <h2>Gate passes</h2>
+              <a class="link-sm" href="#passes">View all</a>
+            </div>
+            <ul class="list">
+              <li class="list-item">
+                <div class="list-item-main">
+                  <strong>Home visit — weekend</strong>
+                  <span>Sat 10:00 AM → Sun 8:00 PM · Parent approval done</span>
+                </div>
+                <span class="chip pending">Pending</span>
+              </li>
+              <li class="list-item">
+                <div class="list-item-main">
+                  <strong>City outing</strong>
+                  <span>Last Fri 4:00 PM → 8:30 PM</span>
+                </div>
+                <span class="chip approved">Approved</span>
+              </li>
+              <li class="list-item">
+                <div class="list-item-main">
+                  <strong>Medical appointment</strong>
+                  <span>Mar 12 · 11:00 AM → 2:00 PM</span>
+                </div>
+                <span class="chip approved">Completed</span>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Visitors + notices -->
+          <div style="display:flex;flex-direction:column;gap:1rem;">
+            <section class="card" id="visitors">
+              <div class="card-head">
+                <h2>Visitors</h2>
+              </div>
+              <ul class="list">
+                <li class="list-item">
+                  <div class="list-item-main">
+                    <strong>No upcoming visitors</strong>
+                    <span>Invite a parent or guest from Quick actions</span>
+                  </div>
+                </li>
+              </ul>
+            </section>
+
+            <section class="card" id="notices">
+              <div class="card-head">
+                <h2>Notices</h2>
+              </div>
+              <div class="notice">
+                <span class="notice-dot amber" aria-hidden="true"></span>
+                <div>
+                  <strong>Evening headcount at 9:00 PM</strong>
+                  <p>All Block C residents must be inside by 9:00 PM tonight.</p>
+                  <time>Today · Warden office</time>
+                </div>
+              </div>
+              <div class="notice">
+                <span class="notice-dot" aria-hidden="true"></span>
+                <div>
+                  <strong>Mess menu update</strong>
+                  <p>Sunday special dinner will include paneer &amp; fruit dessert.</p>
+                  <time>Yesterday · Mess committee</time>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- Profile / room -->
+        <section class="card" id="profile">
+          <div class="card-head">
+            <h2>My hostel profile</h2>
+          </div>
+          <div class="room-grid">
+            <div class="room-cell">
+              <span>Full name</span>
+              <strong id="profile-name">Aarav Sharma</strong>
+            </div>
+            <div class="room-cell">
+              <span>Roll number</span>
+              <strong id="profile-roll">2401641520038</strong>
+            </div>
+            <div class="room-cell">
+              <span>Room</span>
+              <strong>C-214 · Block C</strong>
+            </div>
+            <div class="room-cell">
+              <span>Course</span>
+              <strong>B.Tech CSE · Year 2</strong>
+            </div>
+            <div class="room-cell">
+              <span>Warden</span>
+              <strong>Mr. R. Verma</strong>
+            </div>
+            <div class="room-cell">
+              <span>Parent contact</span>
+              <strong>suresh.parent@email.com</strong>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // Demo student session (set from login page)
+    const student = {
+      name: "Aarav Sharma",
+      roll: "2401641520038",
+      initials: "AS",
+    };
+
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.name) student.name = parsed.name;
+        if (parsed.roll) student.roll = parsed.roll;
+        if (parsed.initials) student.initials = parsed.initials;
+      }
+    } catch (_) {
+      /* ignore */
+    }
+
+    document.getElementById("sidebar-name").textContent = student.name;
+    document.getElementById("sidebar-roll").textContent = student.roll;
+    document.getElementById("profile-name").textContent = student.name;
+    document.getElementById("profile-roll").textContent = student.roll;
+    document.getElementById("avatar").textContent = student.initials;
+
+    // Mobile sidebar
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const menuBtn = document.getElementById("menu-btn");
+
+    function closeMenu() {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    }
+
+    menuBtn.addEventListener("click", () => {
+      sidebar.classList.add("open");
+      overlay.classList.add("show");
+    });
+    overlay.addEventListener("click", closeMenu);
+
+    // Nav highlight
+    const titles = {
+      dashboard: ["Dashboard", "Welcome back — here’s your hostel overview"],
+      attendance: ["Attendance", "Face-verified check-ins and headcount"],
+      passes: ["Gate passes", "Outing and home-visit requests"],
+      visitors: ["Visitors", "Guest and parent entry requests"],
+      notices: ["Notices", "Updates from warden and hostel staff"],
+      profile: ["My profile", "Room and personal hostel details"],
+    };
+
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      item.addEventListener("click", (e) => {
+        const section = item.dataset.section;
+        document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        item.classList.add("active");
+        if (titles[section]) {
+          document.getElementById("page-title").textContent = titles[section][0];
+          document.getElementById("page-sub").textContent = titles[section][1];
+        }
+        closeMenu();
+      });
+    });
+
+    // Toast helper
+    const toast = document.getElementById("toast");
+    let toastTimer;
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    document.querySelectorAll(".action-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const action = btn.dataset.action;
+        const messages = {
+          pass: "Gate pass form will open here (demo).",
+          visitor: "Visitor invite form will open here (demo).",
+          complaint: "Issue report form will open here (demo).",
+          qr: "Student QR code would display here (demo).",
+        };
+        showToast(messages[action] || "Action recorded (demo).");
+      });
+    });
+
+    document.getElementById("notif-btn").addEventListener("click", () => {
+      showToast("2 new notices — evening headcount & mess menu.");
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      try {
+        sessionStorage.removeItem("hs_student");
+      } catch (_) {
+        /* ignore */
+      }
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
