@@ -141,22 +141,7 @@
             <div class="card-head">
               <h2>Notices for parents</h2>
             </div>
-            <div class="notice">
-              <span class="notice-dot amber" aria-hidden="true"></span>
-              <div>
-                <strong>Evening headcount reminder</strong>
-                <p>Block C students must be inside by 9:00 PM tonight.</p>
-                <time>Today · Warden office</time>
-              </div>
-            </div>
-            <div class="notice">
-              <span class="notice-dot" aria-hidden="true"></span>
-              <div>
-                <strong>Parent visiting hours</strong>
-                <p>Weekends 10:00 AM – 5:00 PM at the visitor lounge.</p>
-                <time>This week · Hostel admin</time>
-              </div>
-            </div>
+            <div id="notice-list"></div>
           </section>
         </div>
 
@@ -171,12 +156,14 @@
         <section class="card" id="visitors">
           <div class="card-head">
             <h2>Visit the hostel</h2>
+            <a class="link-sm" href="visit-request.html">+ New request</a>
           </div>
           <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;line-height:1.5;">
             Request entry as a parent visitor. The warden will confirm your slot at the gate.
           </p>
+          <ul class="list" id="visitor-list"></ul>
           <div class="form-actions">
-            <button type="button" class="btn-primary" id="visit-btn">Request parent visit</button>
+            <a class="btn-primary" href="visit-request.html">Request parent visit</a>
           </div>
         </section>
       </main>
@@ -186,6 +173,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/passes.js"></script>
+  <script src="js/store.js"></script>
   <script>
     const parent = {
       name: "Suresh Parent",
@@ -302,6 +290,34 @@
 
     renderPasses();
 
+    function renderParentVisitors() {
+      const list = visitorsForRoll(parent.childRoll);
+      const ul = document.getElementById("visitor-list");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No visit requests yet.</li>`;
+        return;
+      }
+      ul.innerHTML = list
+        .map((v) => {
+          const chip = visitorStatusChip(v.status);
+          return `<li class="list-item">
+            <div class="list-item-main">
+              <strong>${escapeHtml(v.name)} · ${escapeHtml(v.relationLabel || "Visitor")}</strong>
+              <span>${formatWhen(v.when)} · ${escapeHtml(v.purpose || "")}</span>
+            </div>
+            <span class="chip ${chip.className}">${chip.label}</span>
+          </li>`;
+        })
+        .join("");
+    }
+
+    document.getElementById("notice-list").innerHTML = noticesForRole("parents")
+      .slice(0, 4)
+      .map(renderNoticeHtml)
+      .join("");
+
+    renderParentVisitors();
+
     // Mobile sidebar
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -339,10 +355,6 @@
     document.getElementById("notif-btn").addEventListener("click", () => {
       const n = Number(document.getElementById("stat-pending").textContent) || 0;
       showToast(n ? `${n} gate pass(es) need your approval.` : "No pending approvals.");
-    });
-
-    document.getElementById("visit-btn").addEventListener("click", () => {
-      showToast("Visit request sent to warden (demo).");
     });
 
     document.getElementById("logout-btn").addEventListener("click", () => {

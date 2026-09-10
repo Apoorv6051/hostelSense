@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Request a visit</title>
+  <link rel="stylesheet" href="css/student.css" />
+  <link rel="stylesheet" href="css/parent.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Visit request
+    </div>
+    <a class="menu-btn" href="parent.html#visitors" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Request a parent visit</h1>
+          <p>Book a lounge slot. The warden confirms it at the gate.</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="parent.html#visitors">← Parent dashboard</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="card form-card-wide">
+          <a class="back-link" href="parent.html#visitors">← Parent dashboard</a>
+
+          <div id="success" class="success-box hidden" role="status">
+            Visit request sent. You’ll see it as Expected on the visitor desk.
+          </div>
+
+          <form id="visit-form" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="parent-name">Your name</label>
+                <input id="parent-name" type="text" readonly />
+              </div>
+              <div class="field">
+                <label for="child">Visiting</label>
+                <input id="child" type="text" value="Aarav Sharma · 2401641520038" readonly />
+              </div>
+              <div class="field">
+                <label for="when">Preferred time</label>
+                <input id="when" type="datetime-local" required />
+              </div>
+              <div class="field">
+                <label for="phone">Phone</label>
+                <input id="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" />
+              </div>
+              <div class="field full">
+                <label for="purpose">Reason</label>
+                <textarea id="purpose" placeholder="e.g. Weekend family visit in the lounge" required></textarea>
+                <span class="hint">Visiting hours are weekends 10:00 AM – 5:00 PM, plus weekday evenings by approval.</span>
+              </div>
+            </div>
+
+            <div id="error" class="error-box hidden" role="alert"></div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="submit-btn">Send visit request →</button>
+              <a class="btn-secondary" href="parent.html#visitors">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    const parent = {
+      name: "Suresh Parent",
+      email: "suresh.parent@email.com",
+      childRoll: "2401641520038",
+      childName: "Aarav Sharma",
+    };
+    try {
+      const saved = sessionStorage.getItem("hs_parent");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) parent.name = p.name;
+        if (p.email) parent.email = p.email;
+      }
+    } catch (_) {}
+
+    document.getElementById("parent-name").value = parent.name;
+
+    const whenInput = document.getElementById("when");
+    const start = new Date();
+    const daysUntilSat = (6 - start.getDay() + 7) % 7 || 7;
+    start.setDate(start.getDate() + daysUntilSat);
+    start.setHours(16, 0, 0, 0);
+    whenInput.value = toLocalInput(start);
+
+    const phone = document.getElementById("phone");
+    phone.addEventListener("input", () => {
+      phone.value = phone.value.replace(/\D/g, "").slice(0, 10);
+    });
+
+    document.getElementById("visit-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById("error");
+      const successBox = document.getElementById("success");
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const purpose = document.getElementById("purpose").value.trim();
+      const when = whenInput.value;
+      const mobile = phone.value.trim();
+      if (!purpose || !when) {
+        errorBox.textContent = "Please add a preferred time and reason.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+      if (mobile && !/^\d{10}$/.test(mobile)) {
+        errorBox.textContent = "Phone must be 10 digits, or leave it blank.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      addVisitor({
+        id: "vis-" + Date.now(),
+        name: parent.name,
+        relation: "parent",
+        relationLabel: "Parent",
+        studentName: parent.childName,
+        roll: parent.childRoll,
+        when,
+        purpose,
+        phone: mobile,
+        status: "expected",
+        createdBy: "parent",
+        createdAt: new Date().toISOString(),
+      });
+
+      successBox.classList.remove("hidden");
+      document.getElementById("submit-btn").textContent = "Submitted ✓";
+      document.getElementById("submit-btn").disabled = true;
+      setTimeout(() => {
+        window.location.href = "parent.html#visitors";
+      }, 1100);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Student roster</title>
+  <link rel="stylesheet" href="css/student.css" />
+  <link rel="stylesheet" href="css/warden.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Student roster
+    </div>
+    <a class="menu-btn" href="warden.html#headcount" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Block C roster</h1>
+          <p>Live inside / out status for students on your block</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="warden.html">← Warden dashboard</a>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="stats" aria-label="Roster stats">
+          <article class="stat-card">
+            <div class="stat-label">On roster</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-meta">Block C demo set</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Inside</div>
+            <div class="stat-value" id="stat-in" style="color:#6ee7b7;">0</div>
+            <div class="stat-meta good">Face-verified</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Out</div>
+            <div class="stat-value" id="stat-out" style="color:#fcd34d;">0</div>
+            <div class="stat-meta warn">Approved gate pass</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Showing</div>
+            <div class="stat-value" id="stat-showing">0</div>
+            <div class="stat-meta">After search / filter</div>
+          </article>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Students</h2>
+            <div style="display:flex;flex-wrap:wrap;gap:0.65rem;align-items:center;">
+              <div class="filter-tabs" role="tablist" aria-label="Status filter">
+                <button type="button" class="filter-tab active" data-filter="all">All</button>
+                <button type="button" class="filter-tab" data-filter="inside">Inside</button>
+                <button type="button" class="filter-tab" data-filter="out">Out</button>
+              </div>
+              <div class="search-wrap">
+                <input id="search" type="search" placeholder="Search name, roll, room" />
+              </div>
+            </div>
+          </div>
+          <ul class="list" id="roster"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    const students = loadStudents();
+    let filter = "all";
+    let query = "";
+
+    document.getElementById("stat-total").textContent = String(students.length);
+    document.getElementById("stat-in").textContent = String(students.filter((s) => s.status === "inside").length);
+    document.getElementById("stat-out").textContent = String(students.filter((s) => s.status === "out").length);
+
+    function render() {
+      const q = query.trim().toLowerCase();
+      const list = students.filter((s) => {
+        if (filter !== "all" && s.status !== filter) return false;
+        if (!q) return true;
+        return (
+          s.name.toLowerCase().includes(q) ||
+          s.roll.includes(q) ||
+          s.room.toLowerCase().includes(q)
+        );
+      });
+      document.getElementById("stat-showing").textContent = String(list.length);
+      const ul = document.getElementById("roster");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No students match that filter.</li>`;
+        return;
+      }
+      ul.innerHTML = list
+        .map((s) => {
+          const out = s.status === "out";
+          return `<li class="list-item roster-item">
+            <div class="list-item-main">
+              <strong>
+                <span class="dot-status ${out ? "out" : "in"}" aria-hidden="true"></span>
+                ${escapeHtml(s.name)}
+              </strong>
+              <span>Roll ${escapeHtml(s.roll)} · ${escapeHtml(s.room)} · Floor ${s.floor} · ${escapeHtml(s.course)}</span>
+            </div>
+            <span class="chip ${out ? "pending" : "approved"}">${out ? "Out" : "Inside"}</span>
+          </li>`;
+        })
+        .join("");
+    }
+
+    document.querySelectorAll(".filter-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        filter = btn.dataset.filter;
+        document.querySelectorAll(".filter-tab").forEach((b) => b.classList.toggle("active", b === btn));
+        render();
+      });
+    });
+    document.getElementById("search").addEventListener("input", (e) => {
+      query = e.target.value;
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>

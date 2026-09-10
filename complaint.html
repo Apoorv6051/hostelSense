@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Report an issue</title>
+  <link rel="stylesheet" href="css/student.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Report issue
+    </div>
+    <a class="menu-btn" href="student.html" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Report an issue</h1>
+          <p>Room, mess, or maintenance — the warden will pick it up</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="student.html">← Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="card form-card-wide">
+          <a class="back-link" href="student.html">← Student dashboard</a>
+
+          <div id="success" class="success-box hidden" role="status">
+            Issue submitted. You’ll see status updates on your dashboard.
+          </div>
+
+          <form id="complaint-form" novalidate>
+            <div class="field full" style="margin-bottom: 1rem;">
+              <label>Category</label>
+              <div class="type-pills" role="radiogroup" aria-label="Issue category">
+                <button type="button" class="type-pill active" data-type="room" aria-pressed="true">
+                  <span aria-hidden="true">🛏️</span>
+                  Room
+                </button>
+                <button type="button" class="type-pill" data-type="mess" aria-pressed="false">
+                  <span aria-hidden="true">🍽️</span>
+                  Mess
+                </button>
+                <button type="button" class="type-pill" data-type="maintenance" aria-pressed="false">
+                  <span aria-hidden="true">🛠️</span>
+                  Maintenance
+                </button>
+                <button type="button" class="type-pill" data-type="other" aria-pressed="false">
+                  <span aria-hidden="true">📋</span>
+                  Other
+                </button>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="student-name">Student</label>
+                <input id="student-name" type="text" readonly />
+              </div>
+              <div class="field">
+                <label for="room">Room</label>
+                <input id="room" type="text" value="C-214 · Block C" readonly />
+              </div>
+              <div class="field full">
+                <label for="title">Short title</label>
+                <input id="title" type="text" placeholder="e.g. AC not cooling / Leaking tap" required />
+              </div>
+              <div class="field full">
+                <label for="body">Details</label>
+                <textarea id="body" placeholder="Describe the issue, when it started, and anything already tried" required></textarea>
+                <span class="hint">Keep it specific so hostel staff can act without extra follow-up.</span>
+              </div>
+            </div>
+
+            <div id="error" class="error-box hidden" role="alert"></div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="submit-btn">Submit issue →</button>
+              <a class="btn-secondary" href="student.html">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    const student = { name: "Aarav Sharma", roll: "2401641520038" };
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) student.name = p.name;
+        if (p.roll) student.roll = p.roll;
+      }
+    } catch (_) {}
+
+    document.getElementById("student-name").value = student.name + " · " + student.roll;
+
+    let selectedType = "room";
+    const typeLabels = {
+      room: "Room",
+      mess: "Mess",
+      maintenance: "Maintenance",
+      other: "Other",
+    };
+
+    document.querySelectorAll(".type-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedType = btn.dataset.type;
+        document.querySelectorAll(".type-pill").forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      });
+    });
+
+    document.getElementById("complaint-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById("error");
+      const successBox = document.getElementById("success");
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const title = document.getElementById("title").value.trim();
+      const body = document.getElementById("body").value.trim();
+      if (!title || !body) {
+        errorBox.textContent = "Please add a title and details.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      addComplaint({
+        id: "cmp-" + Date.now(),
+        studentName: student.name,
+        roll: student.roll,
+        room: document.getElementById("room").value,
+        category: selectedType,
+        categoryLabel: typeLabels[selectedType],
+        title,
+        body,
+        status: "open",
+        createdAt: new Date().toISOString(),
+      });
+
+      successBox.classList.remove("hidden");
+      document.getElementById("submit-btn").textContent = "Submitted ✓";
+      document.getElementById("submit-btn").disabled = true;
+      setTimeout(() => {
+        window.location.href = "student.html";
+      }, 1100);
+    });
+  </script>
+</body>
+</html>

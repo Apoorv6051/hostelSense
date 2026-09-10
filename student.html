@@ -47,6 +47,10 @@
           <span class="nav-icon" aria-hidden="true">📢</span>
           Notices
         </a>
+        <a class="nav-item" href="#issues" data-section="issues">
+          <span class="nav-icon" aria-hidden="true">🛠️</span>
+          Issues
+        </a>
         <a class="nav-item" href="#profile" data-section="profile">
           <span class="nav-icon" aria-hidden="true">👤</span>
           My profile
@@ -103,8 +107,8 @@
           </article>
           <article class="stat-card">
             <div class="stat-label">Visitor requests</div>
-            <div class="stat-value">0</div>
-            <div class="stat-meta">No active visitors today</div>
+            <div class="stat-value" id="stat-visitors">0</div>
+            <div class="stat-meta" id="stat-visitors-meta">No active visitors today</div>
           </article>
         </section>
 
@@ -113,7 +117,7 @@
           <section class="card" id="attendance">
             <div class="card-head">
               <h2>Attendance today</h2>
-              <a class="link-sm" href="#attendance">Full history</a>
+              <a class="link-sm" href="attendance.html">Full history</a>
             </div>
 
             <div class="attendance-today">
@@ -162,27 +166,27 @@
                   <span>Outing / home visit approval</span>
                 </span>
               </a>
-              <button type="button" class="action-btn" data-action="visitor">
+              <a class="action-btn" href="visitor.html" data-action="visitor" style="text-decoration:none;">
                 <span class="action-icon" aria-hidden="true">👥</span>
                 <span class="action-text">
                   <strong>Invite a visitor</strong>
                   <span>Parent or guest entry request</span>
                 </span>
-              </button>
-              <button type="button" class="action-btn" data-action="complaint">
+              </a>
+              <a class="action-btn" href="complaint.html" data-action="complaint" style="text-decoration:none;">
                 <span class="action-icon" aria-hidden="true">🛠️</span>
                 <span class="action-text">
                   <strong>Report an issue</strong>
                   <span>Room / mess / maintenance</span>
                 </span>
-              </button>
-              <button type="button" class="action-btn" data-action="qr">
+              </a>
+              <a class="action-btn" href="qr.html" data-action="qr" style="text-decoration:none;">
                 <span class="action-icon" aria-hidden="true">📱</span>
                 <span class="action-text">
                   <strong>Show student QR</strong>
                   <span>For gate / mess scan backup</span>
                 </span>
-              </button>
+              </a>
             </div>
           </section>
         </div>
@@ -202,42 +206,29 @@
             <section class="card" id="visitors">
               <div class="card-head">
                 <h2>Visitors</h2>
+                <a class="link-sm" href="visitor.html">+ Invite</a>
               </div>
-              <ul class="list">
-                <li class="list-item">
-                  <div class="list-item-main">
-                    <strong>No upcoming visitors</strong>
-                    <span>Invite a parent or guest from Quick actions</span>
-                  </div>
-                </li>
-              </ul>
+              <ul class="list" id="visitor-list"></ul>
             </section>
 
             <section class="card" id="notices">
               <div class="card-head">
                 <h2>Notices</h2>
               </div>
-              <div class="notice">
-                <span class="notice-dot amber" aria-hidden="true"></span>
-                <div>
-                  <strong>Evening headcount at 9:00 PM</strong>
-                  <p>All Block B residents must be inside by 9:00 PM tonight.</p>
-                  <time>Today · Warden office</time>
-                </div>
-              </div>
-              <div class="notice">
-                <span class="notice-dot" aria-hidden="true"></span>
-                <div>
-                  <strong>Mess menu update</strong>
-                  <p>Sunday special dinner will include paneer &amp; fruit dessert.</p>
-                  <time>Yesterday · Mess committee</time>
-                </div>
-              </div>
+              <div id="notice-list"></div>
             </section>
           </div>
         </div>
 
         <!-- Profile / room -->
+        <section class="card" id="issues">
+          <div class="card-head">
+            <h2>My issues</h2>
+            <a class="link-sm" href="complaint.html">+ Report</a>
+          </div>
+          <ul class="list" id="complaint-list"></ul>
+        </section>
+
         <section class="card" id="profile">
           <div class="card-head">
             <h2>My hostel profile</h2>
@@ -276,6 +267,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="js/passes.js"></script>
+  <script src="js/store.js"></script>
   <script>
     // Demo student session (set from login page)
     const student = {
@@ -345,6 +337,67 @@
 
     renderPasses();
 
+    function renderVisitors() {
+      const list = visitorsForRoll(student.roll);
+      const active = list.filter((v) => v.status === "expected" || v.status === "checked_in");
+      document.getElementById("stat-visitors").textContent = String(active.length);
+      document.getElementById("stat-visitors-meta").textContent = active.length
+        ? active.length === 1
+          ? "1 expected or checked in"
+          : active.length + " expected or checked in"
+        : "No active visitors today";
+
+      const ul = document.getElementById("visitor-list");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No visitors yet. <a href="visitor.html">Invite one</a></li>`;
+        return;
+      }
+      ul.innerHTML = list
+        .map((v) => {
+          const chip = visitorStatusChip(v.status);
+          return `<li class="list-item">
+            <div class="list-item-main">
+              <strong>${escapeHtml(v.name)} · ${escapeHtml(v.relationLabel || v.relation)}</strong>
+              <span>${formatWhen(v.when)} · ${escapeHtml(v.purpose || "")}</span>
+            </div>
+            <span class="chip ${chip.className}">${chip.label}</span>
+          </li>`;
+        })
+        .join("");
+    }
+
+    function renderStudentNotices() {
+      const list = noticesForRole("students").slice(0, 4);
+      document.getElementById("notice-list").innerHTML = list.length
+        ? list.map(renderNoticeHtml).join("")
+        : `<p class="empty-state">No notices right now.</p>`;
+    }
+
+    function renderComplaints() {
+      const list = complaintsForRoll(student.roll);
+      const ul = document.getElementById("complaint-list");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No issues reported. <a href="complaint.html">Report one</a></li>`;
+        return;
+      }
+      ul.innerHTML = list
+        .map((c) => {
+          const chip = complaintStatusChip(c.status);
+          return `<li class="list-item">
+            <div class="list-item-main">
+              <strong>${escapeHtml(c.categoryLabel || c.category)} — ${escapeHtml(c.title)}</strong>
+              <span>${escapeHtml(c.body)}</span>
+            </div>
+            <span class="chip ${chip.className}">${chip.label}</span>
+          </li>`;
+        })
+        .join("");
+    }
+
+    renderVisitors();
+    renderStudentNotices();
+    renderComplaints();
+
     // Mobile sidebar
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -368,6 +421,7 @@
       passes: ["Gate passes", "Outing and home-visit requests"],
       visitors: ["Visitors", "Guest and parent entry requests"],
       notices: ["Notices", "Updates from warden and hostel staff"],
+      issues: ["Issues", "Room, mess, and maintenance reports"],
       profile: ["My profile", "Room and personal hostel details"],
     };
 
@@ -394,19 +448,7 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
-    document.querySelectorAll(".action-btn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const action = btn.dataset.action;
-        if (action === "pass") return; // navigates to gate-pass.html
-        e.preventDefault();
-        const messages = {
-          visitor: "Visitor invite form will open here (demo).",
-          complaint: "Issue report form will open here (demo).",
-          qr: "Student QR code would display here (demo).",
-        };
-        showToast(messages[action] || "Action recorded (demo).");
-      });
-    });
+
 
     document.getElementById("notif-btn").addEventListener("click", () => {
       showToast("2 new notices — evening headcount & mess menu.");

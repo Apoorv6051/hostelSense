@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Invite a visitor</title>
+  <link rel="stylesheet" href="css/student.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Invite visitor
+    </div>
+    <a class="menu-btn" href="student.html#visitors" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Invite a visitor</h1>
+          <p>Request parent or guest entry at the hostel gate</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="student.html#visitors">← Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="card form-card-wide">
+          <a class="back-link" href="student.html#visitors">← Student dashboard</a>
+
+          <div id="success" class="success-box hidden" role="status">
+            Visitor invite submitted. The warden will confirm the slot at the gate.
+          </div>
+
+          <form id="visitor-form" novalidate>
+            <div class="field full" style="margin-bottom: 1rem;">
+              <label>Visitor type</label>
+              <div class="type-pills" role="radiogroup" aria-label="Visitor type">
+                <button type="button" class="type-pill active" data-type="parent" aria-pressed="true">
+                  <span aria-hidden="true">👨‍👩‍👧</span>
+                  Parent
+                </button>
+                <button type="button" class="type-pill" data-type="relative" aria-pressed="false">
+                  <span aria-hidden="true">🏠</span>
+                  Relative
+                </button>
+                <button type="button" class="type-pill" data-type="friend" aria-pressed="false">
+                  <span aria-hidden="true">🤝</span>
+                  Friend
+                </button>
+                <button type="button" class="type-pill" data-type="other" aria-pressed="false">
+                  <span aria-hidden="true">📋</span>
+                  Other
+                </button>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label for="guest-name">Visitor name</label>
+                <input id="guest-name" type="text" placeholder="e.g. Mrs. Sharma" required />
+              </div>
+              <div class="field">
+                <label for="phone">Phone</label>
+                <input id="phone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile" />
+              </div>
+              <div class="field">
+                <label for="when">Expected at</label>
+                <input id="when" type="datetime-local" required />
+              </div>
+              <div class="field">
+                <label for="student-name">Student</label>
+                <input id="student-name" type="text" readonly />
+              </div>
+              <div class="field full">
+                <label for="purpose">Purpose</label>
+                <textarea id="purpose" placeholder="Why is the visitor coming? e.g. family meeting in lounge" required></textarea>
+                <span class="hint">Warden reviews the request before the visitor is let in.</span>
+              </div>
+            </div>
+
+            <div id="error" class="error-box hidden" role="alert"></div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="submit-btn">Submit invite →</button>
+              <a class="btn-secondary" href="student.html#visitors">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    const student = { name: "Aarav Sharma", roll: "2401641520038" };
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) student.name = p.name;
+        if (p.roll) student.roll = p.roll;
+      }
+    } catch (_) {}
+
+    document.getElementById("student-name").value = student.name + " · " + student.roll;
+
+    const whenInput = document.getElementById("when");
+    const start = new Date();
+    start.setDate(start.getDate() + 1);
+    start.setHours(16, 0, 0, 0);
+    whenInput.value = toLocalInput(start);
+
+    let selectedType = "parent";
+    const typeLabels = {
+      parent: "Parent",
+      relative: "Relative",
+      friend: "Friend",
+      other: "Other",
+    };
+
+    document.querySelectorAll(".type-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedType = btn.dataset.type;
+        document.querySelectorAll(".type-pill").forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      });
+    });
+
+    const phone = document.getElementById("phone");
+    phone.addEventListener("input", () => {
+      phone.value = phone.value.replace(/\D/g, "").slice(0, 10);
+    });
+
+    document.getElementById("visitor-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById("error");
+      const successBox = document.getElementById("success");
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const name = document.getElementById("guest-name").value.trim();
+      const purpose = document.getElementById("purpose").value.trim();
+      const when = whenInput.value;
+      const mobile = phone.value.trim();
+
+      if (!name || !purpose || !when) {
+        errorBox.textContent = "Please fill visitor name, purpose, and expected time.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+      if (mobile && !/^\d{10}$/.test(mobile)) {
+        errorBox.textContent = "Phone must be 10 digits, or leave it blank.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      addVisitor({
+        id: "vis-" + Date.now(),
+        name,
+        relation: selectedType,
+        relationLabel: typeLabels[selectedType],
+        studentName: student.name,
+        roll: student.roll,
+        when,
+        purpose,
+        phone: mobile,
+        status: "expected",
+        createdBy: "student",
+        createdAt: new Date().toISOString(),
+      });
+
+      successBox.classList.remove("hidden");
+      document.getElementById("submit-btn").textContent = "Submitted ✓";
+      document.getElementById("submit-btn").disabled = true;
+      setTimeout(() => {
+        window.location.href = "student.html#visitors";
+      }, 1100);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Post a notice</title>
+  <link rel="stylesheet" href="css/student.css" />
+  <link rel="stylesheet" href="css/warden.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      New notice
+    </div>
+    <a class="menu-btn" href="warden.html#alerts" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Post a notice</h1>
+          <p>Send an update to students, parents, or everyone</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="warden.html">← Warden dashboard</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="card form-card-wide">
+          <a class="back-link" href="warden.html">← Warden dashboard</a>
+
+          <div id="success" class="success-box hidden" role="status">
+            Notice published. It will appear on matching portals.
+          </div>
+
+          <form id="notice-form" novalidate>
+            <div class="field full" style="margin-bottom: 1rem;">
+              <label>Audience</label>
+              <div class="type-pills" role="radiogroup" aria-label="Audience">
+                <button type="button" class="type-pill active" data-type="all" aria-pressed="true">
+                  <span aria-hidden="true">📣</span>
+                  Everyone
+                </button>
+                <button type="button" class="type-pill" data-type="students" aria-pressed="false">
+                  <span aria-hidden="true">🎓</span>
+                  Students
+                </button>
+                <button type="button" class="type-pill" data-type="parents" aria-pressed="false">
+                  <span aria-hidden="true">👨‍👩‍👧</span>
+                  Parents
+                </button>
+                <button type="button" class="type-pill" data-type="wardens" aria-pressed="false">
+                  <span aria-hidden="true">🛡️</span>
+                  Staff
+                </button>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field full">
+                <label for="title">Title</label>
+                <input id="title" type="text" placeholder="e.g. Evening headcount at 9:00 PM" required />
+              </div>
+              <div class="field">
+                <label for="priority">Priority</label>
+                <select id="priority">
+                  <option value="normal">Normal</option>
+                  <option value="high">High — highlight on dashboards</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="author">Posted by</label>
+                <input id="author" type="text" value="Warden office" />
+              </div>
+              <div class="field full">
+                <label for="body">Message</label>
+                <textarea id="body" placeholder="Write the notice students and parents will see" required></textarea>
+              </div>
+            </div>
+
+            <div id="error" class="error-box hidden" role="alert"></div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="submit-btn">Publish notice →</button>
+              <a class="btn-secondary" href="warden.html">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    let audience = "all";
+    document.querySelectorAll(".type-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        audience = btn.dataset.type;
+        document.querySelectorAll(".type-pill").forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      });
+    });
+
+    document.getElementById("notice-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById("error");
+      const successBox = document.getElementById("success");
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const title = document.getElementById("title").value.trim();
+      const body = document.getElementById("body").value.trim();
+      if (!title || !body) {
+        errorBox.textContent = "Please add a title and message.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      addNotice({
+        id: "ntc-" + Date.now(),
+        title,
+        body,
+        audience,
+        priority: document.getElementById("priority").value,
+        author: document.getElementById("author").value.trim() || "Warden office",
+        createdAt: new Date().toISOString(),
+      });
+
+      successBox.classList.remove("hidden");
+      document.getElementById("submit-btn").textContent = "Published ✓";
+      document.getElementById("submit-btn").disabled = true;
+      setTimeout(() => {
+        window.location.href = "warden.html#alerts";
+      }, 1100);
+    });
+  </script>
+</body>
+</html>

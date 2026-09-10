@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Student QR</title>
+  <link rel="stylesheet" href="css/student.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Student QR
+    </div>
+    <a class="menu-btn" href="student.html" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Student QR</h1>
+          <p>Backup scan for gate and mess when face-verify is unavailable</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="student.html">← Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="id-card">
+          <div class="id-card-top">
+            <div class="logo" style="display:flex;align-items:center;gap:0.55rem;">
+              <div class="logo-mark" style="width:36px;height:36px;border-radius:10px;font-size:0.75rem;">HS</div>
+              <strong>HostelSense</strong>
+            </div>
+            <span>Student ID</span>
+          </div>
+
+          <div class="qr-frame" id="qr-frame" aria-label="Student QR code"></div>
+
+          <div class="id-meta">
+            <strong id="id-name">Aarav Sharma</strong>
+            <span id="id-roll">Roll 2401641520038</span>
+            <span>C-214 · Block C · B.Tech CSE · Year 2</span>
+          </div>
+          <p class="qr-hint">
+            Hold this code 15–20 cm from the scanner. Face verify remains the primary check-in.
+          </p>
+        </div>
+
+        <div class="form-actions" style="justify-content:center;">
+          <button type="button" class="btn-primary" id="print-btn">Print / save ID</button>
+          <a class="btn-secondary" href="student.html">Done</a>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    const student = { name: "Aarav Sharma", roll: "2401641520038" };
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) student.name = p.name;
+        if (p.roll) student.roll = p.roll;
+      }
+    } catch (_) {}
+
+    document.getElementById("id-name").textContent = student.name;
+    document.getElementById("id-roll").textContent = "Roll " + student.roll;
+
+    function hashStr(s) {
+      let h = 2166136261;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function renderQr(payload) {
+      const n = 25;
+      const bits = [];
+      let h = hashStr(payload);
+      for (let i = 0; i < n * n; i++) {
+        h = Math.imul(h ^ (h >>> 13), 2246822507);
+        bits.push((h >>> 0) & 1);
+      }
+
+      function finder(ox, oy) {
+        for (let y = 0; y < 7; y++) {
+          for (let x = 0; x < 7; x++) {
+            const edge = x === 0 || y === 0 || x === 6 || y === 6;
+            const inner = x >= 2 && x <= 4 && y >= 2 && y <= 4;
+            bits[(oy + y) * n + (ox + x)] = edge || inner ? 1 : 0;
+          }
+        }
+      }
+      finder(0, 0);
+      finder(n - 7, 0);
+      finder(0, n - 7);
+
+      const cell = 8;
+      const pad = 12;
+      const size = n * cell + pad * 2;
+      let rects = "";
+      for (let y = 0; y < n; y++) {
+        for (let x = 0; x < n; x++) {
+          if (!bits[y * n + x]) continue;
+          rects += `<rect x="${pad + x * cell}" y="${pad + y * cell}" width="${cell}" height="${cell}" />`;
+        }
+      }
+      document.getElementById("qr-frame").innerHTML =
+        `<svg viewBox="0 0 ${size} ${size}" role="img" aria-label="QR for ${escapeHtml(student.roll)}">
+          <rect width="${size}" height="${size}" fill="#f8fafc"/>
+          <g fill="#0f172a">${rects}</g>
+        </svg>`;
+    }
+
+    renderQr("HS|" + student.roll + "|" + student.name);
+    document.getElementById("print-btn").addEventListener("click", () => window.print());
+  </script>
+</body>
+</html>

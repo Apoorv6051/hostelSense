@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Attendance history</title>
+  <link rel="stylesheet" href="css/student.css" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Attendance
+    </div>
+    <a class="menu-btn" href="student.html#attendance" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Attendance history</h1>
+          <p>Face-verified check-ins for the last 14 days</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="student.html#attendance">← Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="stats" aria-label="Attendance summary">
+          <article class="stat-card">
+            <div class="stat-label">Present</div>
+            <div class="stat-value" id="stat-present" style="color:#6ee7b7;">0</div>
+            <div class="stat-meta good">Last 14 days</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Late</div>
+            <div class="stat-value" id="stat-late" style="color:#fcd34d;">0</div>
+            <div class="stat-meta warn">After 8:30 AM</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Absent</div>
+            <div class="stat-value" id="stat-absent" style="color:#fca5a5;">0</div>
+            <div class="stat-meta">Parent notified</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Rate</div>
+            <div class="stat-value" id="stat-rate">—</div>
+            <div class="stat-meta">Present + late / weekdays</div>
+          </article>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Last two weeks</h2>
+            <a class="link-sm" href="student.html">Dashboard</a>
+          </div>
+          <div class="week-grid" id="week-grid"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Daily log</h2>
+          </div>
+          <ul class="list" id="day-list"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/store.js"></script>
+  <script>
+    const student = { name: "Aarav Sharma", roll: "2401641520038" };
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) student.name = p.name;
+        if (p.roll) student.roll = p.roll;
+      }
+    } catch (_) {}
+
+    const days = loadAttendance(student.roll);
+    const present = days.filter((d) => d.status === "present").length;
+    const late = days.filter((d) => d.status === "late").length;
+    const absent = days.filter((d) => d.status === "absent").length;
+    const counted = days.filter((d) => d.status !== "leave").length;
+    document.getElementById("stat-present").textContent = String(present);
+    document.getElementById("stat-late").textContent = String(late);
+    document.getElementById("stat-absent").textContent = String(absent);
+    document.getElementById("stat-rate").textContent =
+      counted ? Math.round(((present + late) / counted) * 100) + "%" : "—";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    document.getElementById("week-grid").innerHTML = days
+      .map((day) => {
+        const d = new Date(day.date);
+        const isToday = d.getTime() === today.getTime();
+        const dow = d.toLocaleDateString(undefined, { weekday: "short" });
+        return `<div class="day-cell ${day.status}${isToday ? " today" : ""}">
+          <span class="dow">${escapeHtml(dow)}</span>
+          <span class="dom">${d.getDate()}</span>
+          <span class="chip ${attendanceChip(day.status).className}">${attendanceChip(day.status).label}</span>
+        </div>`;
+      })
+      .join("");
+
+    document.getElementById("day-list").innerHTML = days
+      .slice()
+      .reverse()
+      .map((day) => {
+        const chip = attendanceChip(day.status);
+        const events = day.events
+          .map(
+            (ev) =>
+              `<span class="meta-pill">${escapeHtml(ev.time)} · ${escapeHtml(ev.label)}</span>`
+          )
+          .join("");
+        return `<li class="list-item list-item-stack">
+          <div class="list-item-top">
+            <div class="list-item-main">
+              <strong>${escapeHtml(formatDay(day.date))}</strong>
+              <div class="meta-row">${events}</div>
+            </div>
+            <span class="chip ${chip.className}">${chip.label}</span>
+          </div>
+        </li>`;
+      })
+      .join("");
+  </script>
+</body>
+</html>
