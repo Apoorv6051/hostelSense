@@ -1,0 +1,46 @@
+/* Parent portal accents — base layout from student.css */
+
+:root {
+  --primary: #a78bfa;
+  --primary-deep: #8b5cf6;
+  --accent: #c4b5fd;
+}
+
+.logo-mark {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  box-shadow: 0 10px 24px rgba(139, 92, 246, 0.3);
+}
+
+.nav-item.active {
+  background: rgba(167, 139, 250, 0.12);
+  border-color: rgba(167, 139, 250, 0.28);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.08);
+}
+
+.avatar {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.55), rgba(167, 139, 250, 0.5));
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 12px 28px rgba(139, 92, 246, 0.28);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: rgba(167, 139, 250, 0.55);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.14);
+}
+
+.sidebar {
+  background:
+    radial-gradient(ellipse 90% 40% at 0% 0%, rgba(167, 139, 250, 0.14), transparent 55%),
+    linear-gradient(180deg, #14102a 0%, #0a1020 100%);
+}
+
+.main {
+  background:
+    radial-gradient(ellipse 50% 30% at 100% 0%, rgba(167, 139, 250, 0.1), transparent 50%),
+    var(--panel);
+}
