@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HostelSense — Warden Portal</title>
-  <link rel="stylesheet" href="css/student.css" />
-  <link rel="stylesheet" href="css/warden.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}">
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
 </head>
 <body>
   <div class="mobile-bar">
@@ -208,7 +209,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="js/passes.js"></script>
   <script>
     const warden = {
       name: "R. Verma",
@@ -264,7 +264,6 @@
         return;
       }
 
-      // Show actionable first
       const sorted = list.slice().sort((a, b) => {
         const score = (p) =>
           p.parentStatus === "approved" && p.wardenStatus === "pending"
@@ -377,7 +376,7 @@
       try {
         sessionStorage.removeItem("hs_warden");
       } catch (_) {}
-      window.location.href = "index.html";
+      window.location.href = "/";
     });
   </script>
 </body>
