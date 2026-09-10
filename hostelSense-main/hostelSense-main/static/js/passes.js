@@ -121,5 +121,42 @@ window.changePassStatus = async function(passId, status) {
         }
     } catch (err) {
         console.error("Status update failed:", err);
+
     }
+    async function checkGeofence() {
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const payload = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+
+            try {
+                const res = await fetch("/api/verify-location", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.inside) {
+                    alert(`Verified: Inside hostel perimeter (${result.distance_meters}m from center).`);
+                } else {
+                    alert(`Outside Perimeter: You are ${result.distance_meters}m away. Must be within ${result.allowed_radius}m.`);
+                }
+            } catch (err) {
+                console.error("Geofence check failed:", err);
+            }
+        },
+        (error) => {
+            alert("Location permission denied. Please allow access in your browser.");
+        },
+        { enableHighAccuracy: true }
+    );
+}
 };

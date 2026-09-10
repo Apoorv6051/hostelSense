@@ -153,6 +153,13 @@
               <h2>Quick actions</h2>
             </div>
             <div class="actions">
+              <button type="button" class="action-btn" id="verify-btn" onclick="executeGeofence()">
+                <span class="action-icon" aria-hidden="true">📍</span>
+                <span class="action-text">
+                  <strong>Verify Location</strong>
+                  <span>Check if you are inside hostel grounds</span>
+                </span>
+              </button>
               <a class="action-btn" href="/gate-pass" data-action="pass" style="text-decoration:none;">
                 <span class="action-icon" aria-hidden="true">🎫</span>
                 <span class="action-text">
@@ -271,6 +278,51 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
+    // --- Self-Contained Geofencing Function ---
+    window.executeGeofence = window.checkGeofence = window.checkGeoFence = function () {
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async function (position) {
+          const payload = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+
+          try {
+            const res = await fetch("/api/verify-location", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+              const errData = await res.json();
+              alert("Server Error: " + (errData.error || res.statusText));
+              return;
+            }
+
+            const result = await res.json();
+            if (result.inside) {
+              alert(`Verified: You are inside the hostel perimeter (${result.distance_meters}m from center).`);
+            } else {
+              alert(`Outside Perimeter: You are ${result.distance_meters}m away. Must be within ${result.allowed_radius}m.`);
+            }
+          } catch (err) {
+            alert("Connection error: Could not reach Flask backend.");
+            console.error(err);
+          }
+        },
+        function (error) {
+          alert(`Location error (${error.code}): ${error.message}\nPlease ensure location permission is allowed.`);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    };
+
     const student = {
       name: "APOORV Pal",
       roll: "2401641520038",
@@ -302,6 +354,7 @@
     }
 
     function renderPasses() {
+      if (typeof passesForRoll !== "function") return;
       const list = passesForRoll(student.roll);
       const open = list.filter((p) => overallStatus(p) === "pending");
       document.getElementById("stat-open-passes").textContent = String(open.length);
@@ -384,6 +437,7 @@
 
     document.querySelectorAll(".action-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
+        if (btn.id === "verify-btn") return;
         const action = btn.dataset.action;
         if (action === "pass") return;
         e.preventDefault();
