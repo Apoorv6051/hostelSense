@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Warden Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}">
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Warden portal
+    </div>
+    <button type="button" class="menu-btn" id="menu-btn" aria-label="Open menu">☰</button>
+  </div>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo-mark">HS</div>
+        <div class="brand-text">
+          <strong>HostelSense</strong>
+          <span>Warden portal</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Warden navigation">
+        <a class="nav-item active" href="#dashboard" data-section="dashboard">
+          <span class="nav-icon" aria-hidden="true">🏠</span>
+          Dashboard
+        </a>
+        <a class="nav-item" href="#headcount" data-section="headcount">
+          <span class="nav-icon" aria-hidden="true">📊</span>
+          Live headcount
+        </a>
+        <a class="nav-item" href="#passes" data-section="passes">
+          <span class="nav-icon" aria-hidden="true">🎫</span>
+          Gate passes
+        </a>
+        <a class="nav-item" href="#visitors" data-section="visitors">
+          <span class="nav-icon" aria-hidden="true">👥</span>
+          Visitors
+        </a>
+        <a class="nav-item" href="#alerts" data-section="alerts">
+          <span class="nav-icon" aria-hidden="true">🚨</span>
+          Alerts
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="avatar">RV</div>
+          <div class="user-meta">
+            <strong id="sidebar-name">R. Verma</strong>
+            <span id="sidebar-email">warden@college.edu</span>
+          </div>
+        </div>
+        <button type="button" class="btn-logout" id="logout-btn">Log out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="page-title">Warden dashboard</h1>
+          <p id="page-sub">Live hostel safety, passes, and visitor control</p>
+        </div>
+        <div class="topbar-right">
+          <span class="status-pill orange">
+            <span class="dot" aria-hidden="true"></span>
+            On duty · Block C
+          </span>
+          <button type="button" class="icon-btn" id="notif-btn" aria-label="Notifications">
+            🔔
+            <span class="badge" id="notif-badge">0</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="stats" aria-label="Hostel stats" id="headcount">
+          <article class="stat-card">
+            <div class="stat-label">Students inside</div>
+            <div class="stat-value" style="color:#6ee7b7;">118</div>
+            <div class="stat-meta good">of 124 total · Block C</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Currently out</div>
+            <div class="stat-value" style="color:#fcd34d;">6</div>
+            <div class="stat-meta warn">With approved gate passes</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Passes to review</div>
+            <div class="stat-value" id="stat-pending">0</div>
+            <div class="stat-meta">Parent-approved, need you</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Visitors today</div>
+            <div class="stat-value">2</div>
+            <div class="stat-meta">1 checked in · 1 expected</div>
+          </article>
+        </section>
+
+        <div class="grid-2">
+          <section class="card">
+            <div class="card-head">
+              <h2>Block C headcount</h2>
+              <span class="link-sm">Live</span>
+            </div>
+            <ul class="timeline">
+              <li>
+                <div class="time">Floor 1</div>
+                <div class="event">
+                  <strong>32 / 32 inside <span class="tag in">FULL</span></strong>
+                  <span>Last scan sweep · 07:55 AM</span>
+                </div>
+              </li>
+              <li>
+                <div class="time">Floor 2</div>
+                <div class="event">
+                  <strong>29 / 32 inside</strong>
+                  <span>3 out on approved passes</span>
+                </div>
+              </li>
+              <li>
+                <div class="time">Floor 3</div>
+                <div class="event">
+                  <strong>30 / 32 inside</strong>
+                  <span>2 out · medical + outing</span>
+                </div>
+              </li>
+              <li>
+                <div class="time">Floor 4</div>
+                <div class="event">
+                  <strong>27 / 28 inside</strong>
+                  <span>1 late return flag overnight (cleared)</span>
+                </div>
+              </li>
+            </ul>
+          </section>
+
+          <section class="card" id="alerts">
+            <div class="card-head">
+              <h2>Alerts</h2>
+            </div>
+            <div class="notice">
+              <span class="notice-dot amber" aria-hidden="true"></span>
+              <div>
+                <strong>Evening headcount at 9:00 PM</strong>
+                <p>Prepare Block C sweep. Missing students will auto-flag parents.</p>
+                <time>Scheduled today</time>
+              </div>
+            </div>
+            <div class="notice">
+              <span class="notice-dot" aria-hidden="true"></span>
+              <div>
+                <strong>Gate camera online</strong>
+                <p>Main gate face-verify stream is healthy (99.2% uptime today).</p>
+                <time>System · 5 min ago</time>
+              </div>
+            </div>
+            <div class="notice">
+              <span class="notice-dot amber" aria-hidden="true"></span>
+              <div>
+                <strong>Parent visit expected</strong>
+                <p>1 parent visitor slot for lounge between 4–5 PM.</p>
+                <time>Today</time>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="card" id="passes">
+          <div class="card-head">
+            <h2>Gate pass queue</h2>
+            <span class="link-sm" id="pass-count">0 total</span>
+          </div>
+          <ul class="list" id="pass-list"></ul>
+        </section>
+
+        <section class="card" id="visitors">
+          <div class="card-head">
+            <h2>Visitor desk</h2>
+          </div>
+          <ul class="list">
+            <li class="list-item">
+              <div class="list-item-main">
+                <strong>Mrs. Sharma · Parent of Aarav</strong>
+                <span>Expected 4:00 PM · Visitor lounge · ID ready</span>
+              </div>
+              <span class="chip pending">Expected</span>
+            </li>
+            <li class="list-item">
+              <div class="list-item-main">
+                <strong>Courier · Package drop</strong>
+                <span>Checked in 11:20 AM · Left at reception</span>
+              </div>
+              <span class="chip approved">Done</span>
+            </li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const warden = {
+      name: "R. Verma",
+      email: "warden@college.edu",
+      initials: "RV",
+    };
+
+    try {
+      const saved = sessionStorage.getItem("hs_warden");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) warden.name = p.name;
+        if (p.email) warden.email = p.email;
+        if (p.initials) warden.initials = p.initials;
+      }
+    } catch (_) {}
+
+    document.getElementById("sidebar-name").textContent = warden.name;
+    document.getElementById("sidebar-email").textContent = warden.email;
+    document.getElementById("avatar").textContent = warden.initials;
+
+    const toast = document.getElementById("toast");
+    let toastTimer;
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderPasses() {
+      const list = loadPasses();
+      const needsWarden = list.filter(
+        (p) => p.parentStatus === "approved" && p.wardenStatus === "pending"
+      );
+      document.getElementById("stat-pending").textContent = String(needsWarden.length);
+      document.getElementById("pass-count").textContent =
+        list.length + (list.length === 1 ? " pass" : " passes");
+      document.getElementById("notif-badge").textContent = String(needsWarden.length);
+      document.getElementById("notif-badge").style.display = needsWarden.length ? "grid" : "none";
+
+      const ul = document.getElementById("pass-list");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No gate passes in the system yet.</li>`;
+        return;
+      }
+
+      const sorted = list.slice().sort((a, b) => {
+        const score = (p) =>
+          p.parentStatus === "approved" && p.wardenStatus === "pending"
+            ? 0
+            : p.wardenStatus === "pending"
+              ? 1
+              : 2;
+        return score(a) - score(b);
+      });
+
+      ul.innerHTML = sorted
+        .map((p) => {
+          const canAct =
+            p.parentStatus === "approved" && p.wardenStatus === "pending";
+          const waitingParent = p.parentStatus === "pending";
+          const chipClass =
+            overallStatus(p) === "approved"
+              ? "approved"
+              : overallStatus(p) === "rejected"
+                ? "rejected"
+                : "pending";
+
+          let actions;
+          if (canAct) {
+            actions = `<div class="btn-row">
+              <button type="button" class="btn-approve" data-approve="${p.id}">Approve</button>
+              <button type="button" class="btn-reject" data-reject="${p.id}">Reject</button>
+            </div>`;
+          } else if (waitingParent) {
+            actions = `<span class="chip pending">Awaiting parent</span>`;
+          } else {
+            actions = `<span class="chip ${chipClass}">${statusLabel(p)}</span>`;
+          }
+
+          return `<li class="list-item list-item-stack">
+            <div class="list-item-top">
+              <div class="list-item-main">
+                <strong>${typeEmoji(p.type)} ${escapeHtml(p.studentName)} · ${escapeHtml(p.typeLabel || "Pass")}</strong>
+                <span>Roll ${escapeHtml(p.roll)} · ${escapeHtml(p.destination)}</span>
+                <div class="meta-row">
+                  <span class="meta-pill">${formatWhen(p.from)} → ${formatWhen(p.to)}</span>
+                  <span class="meta-pill">Parent: ${p.parentStatus}</span>
+                  <span class="meta-pill">Warden: ${p.wardenStatus}</span>
+                </div>
+                <span style="display:block;margin-top:0.35rem;">${escapeHtml(p.reason || "")}</span>
+              </div>
+              ${actions}
+            </div>
+          </li>`;
+        })
+        .join("");
+
+      ul.querySelectorAll("[data-approve]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updatePass(btn.dataset.approve, { wardenStatus: "approved" });
+          showToast("Gate pass approved by warden.");
+          renderPasses();
+        });
+      });
+      ul.querySelectorAll("[data-reject]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updatePass(btn.dataset.reject, { wardenStatus: "rejected" });
+          showToast("Gate pass rejected by warden.");
+          renderPasses();
+        });
+      });
+    }
+
+    renderPasses();
+
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    document.getElementById("menu-btn").addEventListener("click", () => {
+      sidebar.classList.add("open");
+      overlay.classList.add("show");
+    });
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    });
+
+    const titles = {
+      dashboard: ["Warden dashboard", "Live hostel safety, passes, and visitor control"],
+      headcount: ["Live headcount", "Block occupancy by floor"],
+      passes: ["Gate passes", "Approve parent-cleared outing requests"],
+      visitors: ["Visitors", "Gate desk and lounge arrivals"],
+      alerts: ["Alerts", "Safety flags and scheduled checks"],
+    };
+
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        item.classList.add("active");
+        const s = item.dataset.section;
+        if (titles[s]) {
+          document.getElementById("page-title").textContent = titles[s][0];
+          document.getElementById("page-sub").textContent = titles[s][1];
+        }
+        sidebar.classList.remove("open");
+        overlay.classList.remove("show");
+      });
+    });
+
+    document.getElementById("notif-btn").addEventListener("click", () => {
+      const n = Number(document.getElementById("stat-pending").textContent) || 0;
+      showToast(n ? `${n} gate pass(es) need warden approval.` : "Queue clear.");
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      try {
+        sessionStorage.removeItem("hs_warden");
+      } catch (_) {}
+      window.location.href = "/";
+    });
+  </script>
+</body>
+</html>

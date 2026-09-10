@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Parent Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/parent.css') }}">
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Parent portal
+    </div>
+    <button type="button" class="menu-btn" id="menu-btn" aria-label="Open menu">☰</button>
+  </div>
+  <div class="overlay" id="overlay"></div>
+
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo-mark">HS</div>
+        <div class="brand-text">
+          <strong>HostelSense</strong>
+          <span>Parent portal</span>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Parent navigation">
+        <a class="nav-item active" href="#dashboard" data-section="dashboard">
+          <span class="nav-icon" aria-hidden="true">🏠</span>
+          Dashboard
+        </a>
+        <a class="nav-item" href="#child" data-section="child">
+          <span class="nav-icon" aria-hidden="true">🎓</span>
+          My child
+        </a>
+        <a class="nav-item" href="#passes" data-section="passes">
+          <span class="nav-icon" aria-hidden="true">🎫</span>
+          Gate passes
+        </a>
+        <a class="nav-item" href="#visitors" data-section="visitors">
+          <span class="nav-icon" aria-hidden="true">👥</span>
+          Visit requests
+        </a>
+        <a class="nav-item" href="#notices" data-section="notices">
+          <span class="nav-icon" aria-hidden="true">📢</span>
+          Notices
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="avatar">SP</div>
+          <div class="user-meta">
+            <strong id="sidebar-name">Suresh Parent</strong>
+            <span id="sidebar-email">suresh.parent@email.com</span>
+          </div>
+        </div>
+        <button type="button" class="btn-logout" id="logout-btn">Log out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-sub">Track your child’s hostel safety and approvals</p>
+        </div>
+        <div class="topbar-right">
+          <span class="status-pill purple">
+            <span class="dot" aria-hidden="true"></span>
+            Child inside hostel
+          </span>
+          <button type="button" class="icon-btn" id="notif-btn" aria-label="Notifications">
+            🔔
+            <span class="badge" id="notif-badge">0</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="stats" aria-label="Child overview">
+          <article class="stat-card">
+            <div class="stat-label">Child status</div>
+            <div class="stat-value" style="color:#6ee7b7;">Safe · Inside</div>
+            <div class="stat-meta good">Last gate scan · 07:42 AM</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Attendance (month)</div>
+            <div class="stat-value">96%</div>
+            <div class="stat-meta">Face-verified entries</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Passes to review</div>
+            <div class="stat-value" id="stat-pending">0</div>
+            <div class="stat-meta warn">Waiting for your approval</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Room</div>
+            <div class="stat-value" style="font-size:1.2rem;">C-214</div>
+            <div class="stat-meta">Block C · Warden R. Verma</div>
+          </article>
+        </section>
+
+        <div class="grid-2">
+          <section class="card" id="child">
+            <div class="card-head">
+              <h2>My child</h2>
+            </div>
+            <div class="room-grid">
+              <div class="room-cell">
+                <span>Name</span>
+                <strong>Aarav Sharma</strong>
+              </div>
+              <div class="room-cell">
+                <span>Roll number</span>
+                <strong>2401641520038</strong>
+              </div>
+              <div class="room-cell">
+                <span>Course</span>
+                <strong>B.Tech CSE · Year 2</strong>
+              </div>
+              <div class="room-cell">
+                <span>Hostel room</span>
+                <strong>C-214 · Block C</strong>
+              </div>
+              <div class="room-cell">
+                <span>Today’s check-in</span>
+                <strong>07:42 AM · Main gate</strong>
+              </div>
+              <div class="room-cell">
+                <span>Evening headcount</span>
+                <strong>Due 9:00 PM</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" id="notices">
+            <div class="card-head">
+              <h2>Notices for parents</h2>
+            </div>
+            <div class="notice">
+              <span class="notice-dot amber" aria-hidden="true"></span>
+              <div>
+                <strong>Evening headcount reminder</strong>
+                <p>Block C students must be inside by 9:00 PM tonight.</p>
+                <time>Today · Warden office</time>
+              </div>
+            </div>
+            <div class="notice">
+              <span class="notice-dot" aria-hidden="true"></span>
+              <div>
+                <strong>Parent visiting hours</strong>
+                <p>Weekends 10:00 AM – 5:00 PM at the visitor lounge.</p>
+                <time>This week · Hostel admin</time>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="card" id="passes">
+          <div class="card-head">
+            <h2>Gate passes for your child</h2>
+            <span class="link-sm" id="pass-count">0 requests</span>
+          </div>
+          <ul class="list" id="pass-list"></ul>
+        </section>
+
+        <section class="card" id="visitors">
+          <div class="card-head">
+            <h2>Visit the hostel</h2>
+          </div>
+          <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;line-height:1.5;">
+            Request entry as a parent visitor. The warden will confirm your slot at the gate.
+          </p>
+          <div class="form-actions">
+            <button type="button" class="btn-primary" id="visit-btn">Request parent visit</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const parent = {
+      name: "Suresh Parent",
+      email: "suresh.parent@email.com",
+      initials: "SP",
+      childRoll: "2401641520038",
+    };
+
+    try {
+      const saved = sessionStorage.getItem("hs_parent");
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.name) parent.name = p.name;
+        if (p.email) parent.email = p.email;
+        if (p.initials) parent.initials = p.initials;
+      }
+    } catch (_) {}
+
+    document.getElementById("sidebar-name").textContent = parent.name;
+    document.getElementById("sidebar-email").textContent = parent.email;
+    document.getElementById("avatar").textContent = parent.initials;
+
+    const toast = document.getElementById("toast");
+    let toastTimer;
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function renderPasses() {
+      const list = passesForRoll(parent.childRoll);
+      const pending = list.filter((p) => p.parentStatus === "pending");
+      document.getElementById("stat-pending").textContent = String(pending.length);
+      document.getElementById("pass-count").textContent =
+        list.length + (list.length === 1 ? " request" : " requests");
+      document.getElementById("notif-badge").textContent = String(pending.length);
+      document.getElementById("notif-badge").style.display = pending.length ? "grid" : "none";
+
+      const ul = document.getElementById("pass-list");
+      if (!list.length) {
+        ul.innerHTML = `<li class="empty-state">No gate pass requests yet.</li>`;
+        return;
+      }
+
+      ul.innerHTML = list
+        .map((p) => {
+          const chipClass =
+            overallStatus(p) === "approved"
+              ? "approved"
+              : overallStatus(p) === "rejected"
+                ? "rejected"
+                : "pending";
+          const actions =
+            p.parentStatus === "pending"
+              ? `<div class="btn-row">
+                  <button type="button" class="btn-approve" data-approve="${p.id}">Approve</button>
+                  <button type="button" class="btn-reject" data-reject="${p.id}">Reject</button>
+                </div>`
+              : `<span class="chip ${chipClass}">${
+                  p.parentStatus === "approved"
+                    ? p.wardenStatus === "pending"
+                      ? "You approved · Warden pending"
+                      : statusLabel(p)
+                    : p.parentStatus === "rejected"
+                      ? "You rejected"
+                      : statusLabel(p)
+                }</span>`;
+
+          return `<li class="list-item list-item-stack">
+            <div class="list-item-top">
+              <div class="list-item-main">
+                <strong>${typeEmoji(p.type)} ${p.typeLabel || "Gate pass"} — ${escapeHtml(p.destination)}</strong>
+                <span>${formatWhen(p.from)} → ${formatWhen(p.to)}</span>
+                <div class="meta-row">
+                  <span class="meta-pill">Parent: ${p.parentStatus}</span>
+                  <span class="meta-pill">Warden: ${p.wardenStatus}</span>
+                </div>
+                <span style="display:block;margin-top:0.35rem;">${escapeHtml(p.reason || "")}</span>
+              </div>
+              ${actions}
+            </div>
+          </li>`;
+        })
+        .join("");
+
+      ul.querySelectorAll("[data-approve]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updatePass(btn.dataset.approve, { parentStatus: "approved" });
+          showToast("Gate pass approved by parent.");
+          renderPasses();
+        });
+      });
+      ul.querySelectorAll("[data-reject]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          updatePass(btn.dataset.reject, {
+            parentStatus: "rejected",
+            wardenStatus: "rejected",
+          });
+          showToast("Gate pass rejected.");
+          renderPasses();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    renderPasses();
+
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    document.getElementById("menu-btn").addEventListener("click", () => {
+      sidebar.classList.add("open");
+      overlay.classList.add("show");
+    });
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("show");
+    });
+
+    const titles = {
+      dashboard: ["Dashboard", "Track your child’s hostel safety and approvals"],
+      child: ["My child", "Live status and hostel details"],
+      passes: ["Gate passes", "Approve or reject outing requests"],
+      visitors: ["Visit requests", "Plan a parent visit to campus"],
+      notices: ["Notices", "Updates from the warden and hostel"],
+    };
+
+    document.querySelectorAll(".nav-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".nav-item").forEach((n) => n.classList.remove("active"));
+        item.classList.add("active");
+        const s = item.dataset.section;
+        if (titles[s]) {
+          document.getElementById("page-title").textContent = titles[s][0];
+          document.getElementById("page-sub").textContent = titles[s][1];
+        }
+        sidebar.classList.remove("open");
+        overlay.classList.remove("show");
+      });
+    });
+
+    document.getElementById("notif-btn").addEventListener("click", () => {
+      const n = Number(document.getElementById("stat-pending").textContent) || 0;
+      showToast(n ? `${n} gate pass(es) need your approval.` : "No pending approvals.");
+    });
+
+    document.getElementById("visit-btn").addEventListener("click", () => {
+      showToast("Visit request sent to warden (demo).");
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      try {
+        sessionStorage.removeItem("hs_parent");
+      } catch (_) {}
+      window.location.href = "/";
+    });
+  </script>
+</body>
+</html>
