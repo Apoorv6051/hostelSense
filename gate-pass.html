@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HostelSense — Request Gate Pass</title>
-  <link rel="stylesheet" href="css/student.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
 </head>
 <body>
   <div class="mobile-bar">
@@ -12,7 +13,7 @@
       <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
       Gate pass
     </div>
-    <a class="menu-btn" href="student.html" aria-label="Back" style="text-decoration:none;">←</a>
+    <a class="menu-btn" href="/student" aria-label="Back" style="text-decoration:none;">←</a>
   </div>
 
   <div class="app" style="grid-template-columns: 1fr;">
@@ -23,13 +24,13 @@
           <p>Fill details for outing, home visit, or medical leave</p>
         </div>
         <div class="topbar-right">
-          <a class="btn-secondary" href="student.html">← Back to dashboard</a>
+          <a class="btn-secondary" href="/student">← Back to dashboard</a>
         </div>
       </header>
 
       <main class="content" style="align-items: center;">
         <div class="card form-card-wide">
-          <a class="back-link" href="student.html">← Student dashboard</a>
+          <a class="back-link" href="/student">← Student dashboard</a>
 
           <div id="success" class="success-box hidden" role="status">
             Gate pass submitted. Parent and warden will review it next.
@@ -100,7 +101,7 @@
               <button type="submit" class="btn-primary" id="submit-btn">
                 Submit gate pass →
               </button>
-              <a class="btn-secondary" href="student.html">Cancel</a>
+              <a class="btn-secondary" href="/student">Cancel</a>
             </div>
           </form>
         </div>
@@ -108,7 +109,6 @@
     </div>
   </div>
 
-  <script src="js/passes.js"></script>
   <script>
     const student = { name: "Aarav Sharma", roll: "2401641520038" };
     try {
@@ -123,7 +123,6 @@
     document.getElementById("student-name").value = student.name;
     document.getElementById("roll").value = student.roll;
 
-    // Default times: tomorrow 10am → same day 8pm
     const fromInput = document.getElementById("from");
     const toInput = document.getElementById("to");
     const start = new Date();
@@ -210,7 +209,7 @@
       document.getElementById("submit-btn").disabled = true;
 
       setTimeout(() => {
-        window.location.href = "student.html#passes";
+        window.location.href = "/student#passes";
       }, 1200);
     });
   </script>

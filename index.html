@@ -4,11 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HostelSense — Login</title>
-  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
 </head>
 <body>
   <div class="login-page">
-    <!-- Left brand panel -->
     <aside class="brand-panel">
       <div class="brand-panel-inner">
         <div class="logo">
@@ -46,7 +45,6 @@
       </div>
     </aside>
 
-    <!-- Right login form -->
     <main class="form-panel">
       <div class="form-card">
         <header class="form-header">
@@ -54,7 +52,6 @@
           <p>Choose your role and sign in to continue</p>
         </header>
 
-        <!-- Role selector -->
         <div class="role-group" role="radiogroup" aria-label="Login role">
           <button type="button" class="role-option active" data-role="student" aria-pressed="true">
             <span class="role-icon student">🎓</span>
@@ -75,7 +72,6 @@
             <label for="identifier" id="identifier-label">Roll number</label>
             <div class="input-wrap">
               <span class="input-icon" id="identifier-icon" aria-hidden="true">
-                <!-- Roll number icon (student default) -->
                 <svg class="icon-roll" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="4" width="18" height="16" rx="2"/>
                   <path d="M7 8h10M7 12h6M7 16h8"/>
@@ -221,7 +217,6 @@
       btnText.textContent = `Sign in as ${meta.label}`;
       demoCreds.textContent = meta.creds;
 
-      // Switch identifier field: roll no (student) vs email (parent/warden)
       idLabel.textContent = meta.fieldLabel;
       idInput.placeholder = meta.placeholder;
       idInput.value = meta.identifier;
@@ -254,7 +249,6 @@
       btn.addEventListener("click", () => applyRole(btn.dataset.role));
     });
 
-    // Keep roll number digits-only while typing
     idInput.addEventListener("input", () => {
       if (roles[selectedRole].idType !== "roll") return;
       const digits = idInput.value.replace(/\D/g, "").slice(0, 13);
@@ -290,7 +284,6 @@
         return;
       }
 
-      // Design-only page: validate against demo credentials
       const idMatch = isRoll
         ? identifier === meta.identifier
         : identifier.toLowerCase() === meta.identifier.toLowerCase();
@@ -300,11 +293,10 @@
         btnText.textContent = "Signed in ✓";
         document.getElementById("btn-submit").classList.add("success");
 
-        // Route each role to its portal after login
         const destinations = {
           student: {
             key: "hs_student",
-            href: "student.html",
+            href: "/student",
             data: {
               name: "Aarav Sharma",
               roll: meta.identifier,
@@ -314,7 +306,7 @@
           },
           parent: {
             key: "hs_parent",
-            href: "parent.html",
+            href: "/parent",
             data: {
               name: "Suresh Parent",
               email: meta.identifier,
@@ -324,7 +316,7 @@
           },
           warden: {
             key: "hs_warden",
-            href: "warden.html",
+            href: "/warden",
             data: {
               name: "R. Verma",
               email: meta.identifier,
@@ -338,19 +330,12 @@
         if (dest) {
           try {
             sessionStorage.setItem(dest.key, JSON.stringify(dest.data));
-          } catch (_) {
-            /* ignore storage errors */
-          }
+          } catch (_) {}
           setTimeout(() => {
             window.location.href = dest.href;
           }, 700);
           return;
         }
-
-        setTimeout(() => {
-          btnText.textContent = `Sign in as ${meta.label}`;
-          document.getElementById("btn-submit").classList.remove("success");
-        }, 1800);
       } else {
         errorBox.textContent = isRoll
           ? "Invalid roll number or password. Use the demo details below."

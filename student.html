@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HostelSense — Student Dashboard</title>
-  <link rel="stylesheet" href="css/student.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
 </head>
 <body>
   <div class="mobile-bar">
@@ -88,7 +89,6 @@
       </header>
 
       <main class="content">
-        <!-- Stats -->
         <section class="stats" aria-label="Quick stats">
           <article class="stat-card">
             <div class="stat-label">Today’s status</div>
@@ -113,7 +113,6 @@
         </section>
 
         <div class="grid-2">
-          <!-- Attendance -->
           <section class="card" id="attendance">
             <div class="card-head">
               <h2>Attendance today</h2>
@@ -153,13 +152,12 @@
             </ul>
           </section>
 
-          <!-- Quick actions -->
           <section class="card">
             <div class="card-head">
               <h2>Quick actions</h2>
             </div>
             <div class="actions">
-              <a class="action-btn" href="gate-pass.html" data-action="pass" style="text-decoration:none;">
+              <a class="action-btn" href="/gate-pass" data-action="pass" style="text-decoration:none;">
                 <span class="action-icon" aria-hidden="true">🎫</span>
                 <span class="action-text">
                   <strong>Request gate pass</strong>
@@ -192,16 +190,14 @@
         </div>
 
         <div class="grid-2">
-          <!-- Gate passes -->
           <section class="card" id="passes">
             <div class="card-head">
               <h2>Gate passes</h2>
-              <a class="link-sm" href="gate-pass.html">+ New pass</a>
+              <a class="link-sm" href="/gate-pass">+ New pass</a>
             </div>
             <ul class="list" id="pass-list"></ul>
           </section>
 
-          <!-- Visitors + notices -->
           <div style="display:flex;flex-direction:column;gap:1rem;">
             <section class="card" id="visitors">
               <div class="card-head">
@@ -220,6 +216,7 @@
           </div>
         </div>
 
+<<<<<<< HEAD
         <!-- Profile / room -->
         <section class="card" id="issues">
           <div class="card-head">
@@ -229,6 +226,8 @@
           <ul class="list" id="complaint-list"></ul>
         </section>
 
+=======
+>>>>>>> 8c3569293761c2c8555e80fd9bd903da46d0e5cc
         <section class="card" id="profile">
           <div class="card-head">
             <h2>My hostel profile</h2>
@@ -266,10 +265,12 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<<<<<<< HEAD
   <script src="js/passes.js"></script>
   <script src="js/store.js"></script>
+=======
+>>>>>>> 8c3569293761c2c8555e80fd9bd903da46d0e5cc
   <script>
-    // Demo student session (set from login page)
     const student = {
       name: "APOORV Pal",
       roll: "2401641520038",
@@ -284,9 +285,7 @@
         if (parsed.roll) student.roll = parsed.roll;
         if (parsed.initials) student.initials = parsed.initials;
       }
-    } catch (_) {
-      /* ignore */
-    }
+    } catch (_) {}
 
     document.getElementById("sidebar-name").textContent = student.name;
     document.getElementById("sidebar-roll").textContent = student.roll;
@@ -312,7 +311,7 @@
 
       const ul = document.getElementById("pass-list");
       if (!list.length) {
-        ul.innerHTML = `<li class="empty-state">No gate passes yet. <a href="gate-pass.html">Request one</a></li>`;
+        ul.innerHTML = `<li class="empty-state">No gate passes yet. <a href="/gate-pass">Request one</a></li>`;
         return;
       }
 
@@ -337,6 +336,7 @@
 
     renderPasses();
 
+<<<<<<< HEAD
     function renderVisitors() {
       const list = visitorsForRoll(student.roll);
       const active = list.filter((v) => v.status === "expected" || v.status === "checked_in");
@@ -399,6 +399,8 @@
     renderComplaints();
 
     // Mobile sidebar
+=======
+>>>>>>> 8c3569293761c2c8555e80fd9bd903da46d0e5cc
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     const menuBtn = document.getElementById("menu-btn");
@@ -414,7 +416,6 @@
     });
     overlay.addEventListener("click", closeMenu);
 
-    // Nav highlight
     const titles = {
       dashboard: ["Dashboard", "Welcome back — here’s your hostel overview"],
       attendance: ["Attendance", "Face-verified check-ins and headcount"],
@@ -438,7 +439,6 @@
       });
     });
 
-    // Toast helper
     const toast = document.getElementById("toast");
     let toastTimer;
     function showToast(msg) {
@@ -448,7 +448,23 @@
       toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
     }
 
+<<<<<<< HEAD
 
+=======
+    document.querySelectorAll(".action-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const action = btn.dataset.action;
+        if (action === "pass") return;
+        e.preventDefault();
+        const messages = {
+          visitor: "Visitor invite form will open here (demo).",
+          complaint: "Issue report form will open here (demo).",
+          qr: "Student QR code would display here (demo).",
+        };
+        showToast(messages[action] || "Action recorded (demo).");
+      });
+    });
+>>>>>>> 8c3569293761c2c8555e80fd9bd903da46d0e5cc
 
     document.getElementById("notif-btn").addEventListener("click", () => {
       showToast("2 new notices — evening headcount & mess menu.");
@@ -457,10 +473,8 @@
     document.getElementById("logout-btn").addEventListener("click", () => {
       try {
         sessionStorage.removeItem("hs_student");
-      } catch (_) {
-        /* ignore */
-      }
-      window.location.href = "index.html";
+      } catch (_) {}
+      window.location.href = "/";
     });
   </script>
 </body>
