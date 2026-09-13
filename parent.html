@@ -4,8 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HostelSense — Parent Portal</title>
-  <link rel="stylesheet" href="css/student.css" />
-  <link rel="stylesheet" href="css/parent.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/parent.css') }}">
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
 </head>
 <body>
   <div class="mobile-bar">
@@ -172,8 +173,11 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<<<<<<< HEAD
   <script src="js/passes.js"></script>
   <script src="js/store.js"></script>
+=======
+>>>>>>> 8c3569293761c2c8555e80fd9bd903da46d0e5cc
   <script>
     const parent = {
       name: "Suresh Parent",
@@ -290,6 +294,7 @@
 
     renderPasses();
 
+<<<<<<< HEAD
     function renderParentVisitors() {
       const list = visitorsForRoll(parent.childRoll);
       const ul = document.getElementById("visitor-list");
@@ -319,6 +324,8 @@
     renderParentVisitors();
 
     // Mobile sidebar
+=======
+>>>>>>> 8c3569293761c2c8555e80fd9bd903da46d0e5cc
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     document.getElementById("menu-btn").addEventListener("click", () => {
@@ -361,7 +368,7 @@
       try {
         sessionStorage.removeItem("hs_parent");
       } catch (_) {}
-      window.location.href = "index.html";
+      window.location.href = "/";
     });
   </script>
 </body>
