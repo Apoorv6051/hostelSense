@@ -129,7 +129,8 @@ function updateVisitor(id, patch) {
 }
 
 function visitorsForRoll(roll) {
-  return loadVisitors().filter((v) => v.roll === roll);
+  const targetRoll = String(roll);
+  return loadVisitors().filter((v) => String(v.roll) === targetRoll);
 }
 
 function visitorStatusChip(status) {
