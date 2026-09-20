@@ -338,7 +338,7 @@
     renderPasses();
 
     function renderVisitors() {
-      const list = visitorsForRoll(String(student.roll));
+      const list = visitorsForRoll(student.roll);
       const active = list.filter((v) => v.status === "expected" || v.status === "checked_in");
       document.getElementById("stat-visitors").textContent = String(active.length);
       document.getElementById("stat-visitors-meta").textContent = active.length

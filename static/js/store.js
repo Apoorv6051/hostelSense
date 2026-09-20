@@ -129,8 +129,11 @@ function updateVisitor(id, patch) {
 }
 
 function visitorsForRoll(roll) {
-  const targetRoll = String(roll);
-  return loadVisitors().filter((v) => String(v.roll) === targetRoll);
+  const targetRoll = String(roll ?? "").trim();
+  if (!targetRoll) return [];
+  return loadVisitors().filter(
+    (visitor) => String(visitor.roll ?? "").trim() === targetRoll
+  );
 }
 
 function visitorStatusChip(status) {
