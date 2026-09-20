@@ -340,9 +340,12 @@
     function renderVisitors() {
       const list = visitorsForRoll(student.roll);
       const active = list.filter((v) => v.status === "expected" || v.status === "checked_in");
+      const arrived = visitorArrivalNotificationsForRoll(student.roll);
       document.getElementById("stat-visitors").textContent = String(active.length);
       document.getElementById("stat-visitors-meta").textContent = active.length
-        ? active.length === 1
+        ? arrived.length
+          ? `${arrived.length} visitor${arrived.length === 1 ? "" : "s"} arrived at gate`
+          : active.length === 1
           ? "1 expected or checked in"
           : active.length + " expected or checked in"
         : "No active visitors today";
@@ -358,7 +361,7 @@
           return `<li class="list-item">
             <div class="list-item-main">
               <strong>${escapeHtml(v.name)} · ${escapeHtml(v.relationLabel || v.relation)}</strong>
-              <span>${formatWhen(v.when)} · ${escapeHtml(v.purpose || "")}</span>
+              <span>${v.status === "checked_in" ? "Arrived at gate · " + formatWhen(v.arrivedAt) : formatWhen(v.when)} · ${escapeHtml(v.purpose || "")}</span>
             </div>
             <span class="chip ${chip.className}">${chip.label}</span>
           </li>`;
@@ -447,7 +450,12 @@
     }
 
     document.getElementById("notif-btn").addEventListener("click", () => {
-      showToast("2 new notices — evening headcount & mess menu.");
+      const arrived = visitorArrivalNotificationsForRoll(student.roll);
+      showToast(
+        arrived.length
+          ? `${arrived[0].name} has arrived at the main gate.`
+          : "2 new notices — evening headcount & mess menu."
+      );
     });
 
     document.getElementById("logout-btn").addEventListener("click", () => {

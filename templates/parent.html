@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/parent.css') }}">
   <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
   <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
   <div class="mobile-bar">
@@ -164,6 +165,7 @@
             Request entry as a parent visitor. The warden will confirm your slot at the gate.
           </p>
           <ul class="list" id="visitor-list"></ul>
+          <div id="visitor-qr"></div>
           <div class="form-actions">
             <a class="btn-primary" href="/visit-request">Request parent visit</a>
           </div>
@@ -293,8 +295,10 @@
     function renderParentVisitors() {
       const list = visitorsForRoll(parent.childRoll);
       const ul = document.getElementById("visitor-list");
+      const qrPanel = document.getElementById("visitor-qr");
       if (!list.length) {
         ul.innerHTML = `<li class="empty-state">No visit requests yet.</li>`;
+        qrPanel.innerHTML = "";
         return;
       }
       ul.innerHTML = list
@@ -309,6 +313,27 @@
           </li>`;
         })
         .join("");
+
+      const approved = list.find((visitor) => visitor.status === "expected" && visitor.qrPayload);
+      if (!approved) {
+        qrPanel.innerHTML = "";
+        return;
+      }
+      qrPanel.innerHTML = `<div class="qr-panel">
+        <div>
+          <strong>Entry pass ready</strong>
+          <p>Show this code at the main gate. It contains the visitor, student, and visit details.</p>
+          <span class="meta-pill">Valid for ${escapeHtml(formatWhen(approved.when))}</span>
+        </div>
+        <div class="qr-code" id="visitor-qr-code" aria-label="Visitor entry QR code"></div>
+      </div>`;
+      new QRCode(document.getElementById("visitor-qr-code"), {
+        text: approved.qrPayload,
+        width: 156,
+        height: 156,
+        colorDark: "#221c18",
+        colorLight: "#fbf6ea",
+      });
     }
 
     document.getElementById("notice-list").innerHTML = noticesForRole("parents")

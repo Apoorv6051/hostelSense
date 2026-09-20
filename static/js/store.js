@@ -128,11 +128,40 @@ function updateVisitor(id, patch) {
   return hsUpdate(HS_VISITORS_KEY, id, patch, DEFAULT_VISITORS);
 }
 
+function issueVisitorQr(visitor) {
+  const token = visitor.qrToken || `HS-VISIT-${visitor.id}-${Date.now()}`;
+  const payload = {
+    type: "hostelsense-visitor",
+    token,
+    visitorId: visitor.id,
+    visitorName: visitor.name,
+    visitorPhone: visitor.phone || "",
+    studentName: visitor.studentName,
+    studentRoll: visitor.roll,
+    relationship: visitor.relationLabel || visitor.relation || "Visitor",
+    requestedFor: visitor.when,
+    purpose: visitor.purpose || "",
+  };
+  updateVisitor(visitor.id, {
+    status: "expected",
+    qrToken: token,
+    qrPayload: JSON.stringify(payload),
+    qrIssuedAt: new Date().toISOString(),
+  });
+  return { ...visitor, ...payload, status: "expected", qrToken: token, qrPayload: JSON.stringify(payload) };
+}
+
 function visitorsForRoll(roll) {
   const targetRoll = String(roll ?? "").trim();
   if (!targetRoll) return [];
   return loadVisitors().filter(
     (visitor) => String(visitor.roll ?? "").trim() === targetRoll
+  );
+}
+
+function visitorArrivalNotificationsForRoll(roll) {
+  return visitorsForRoll(roll).filter(
+    (visitor) => visitor.status === "checked_in" && visitor.arrivedAt
   );
 }
 
