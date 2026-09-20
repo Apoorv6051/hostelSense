@@ -162,8 +162,7 @@ function statusLabel(pass) {
 }
 
 function typeEmoji(type) {
-  const map = { outing: "🏙️", home: "🏠", medical: "🏥", other: "📋" };
-  return map[type] || "🎫";
+  return "";
 }
 
 async function checkGeofence() {

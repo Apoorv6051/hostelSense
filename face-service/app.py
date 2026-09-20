@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import face_recognition
 import json
@@ -7,6 +7,10 @@ import numpy as np
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route("/", methods=["GET"])
+def face_check_page():
+    return send_file("test-camera.html")
 
 def load_known_encodings():
     if not os.path.exists("encodings.json"):

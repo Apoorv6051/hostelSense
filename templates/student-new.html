@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Add student</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}" />
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Add student
+    </div>
+    <a class="menu-btn" href="/students" aria-label="Back" style="text-decoration:none;">←</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Add a student</h1>
+          <p>Add a resident to the Block C roster</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="/students">← Student roster</a>
+        </div>
+      </header>
+
+      <main class="content" style="align-items: center;">
+        <div class="card form-card-wide">
+          <a class="back-link" href="/students">← Student roster</a>
+
+          <div id="success" class="success-box hidden" role="status">
+            Student added to the Block C roster.
+          </div>
+
+          <form id="student-form" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="name">Full name</label>
+                <input id="name" type="text" placeholder="e.g. Aarav Sharma" required />
+              </div>
+              <div class="field">
+                <label for="roll">Roll number</label>
+                <input id="roll" type="text" inputmode="numeric" maxlength="13" placeholder="13-digit roll number" required />
+              </div>
+              <div class="field">
+                <label for="room">Room</label>
+                <input id="room" type="text" placeholder="e.g. C-214" required />
+              </div>
+              <div class="field">
+                <label for="floor">Floor</label>
+                <select id="floor">
+                  <option value="1">Floor 1</option>
+                  <option value="2" selected>Floor 2</option>
+                  <option value="3">Floor 3</option>
+                  <option value="4">Floor 4</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="course">Course</label>
+                <input id="course" type="text" placeholder="e.g. B.Tech CSE · Year 2" required />
+              </div>
+              <div class="field">
+                <label for="parent-name">Parent name</label>
+                <input id="parent-name" type="text" placeholder="Optional" />
+              </div>
+              <div class="field">
+                <label for="parent-email">Parent email</label>
+                <input id="parent-email" type="email" placeholder="Optional" />
+              </div>
+            </div>
+
+            <div class="field full" style="margin: 1rem 0 0;">
+              <label>Current status</label>
+              <div class="type-pills" role="radiogroup" aria-label="Current status" style="grid-template-columns: 1fr 1fr;">
+                <button type="button" class="type-pill active" data-status="inside" aria-pressed="true">
+                  <span aria-hidden="true">🏠</span>
+                  Inside hostel
+                </button>
+                <button type="button" class="type-pill" data-status="out" aria-pressed="false">
+                  <span aria-hidden="true">🚶</span>
+                  Currently out
+                </button>
+              </div>
+            </div>
+
+            <div id="error" class="error-box hidden" role="alert"></div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="submit-btn">Add student →</button>
+              <a class="btn-secondary" href="/students">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+  <script>
+    let status = "inside";
+    document.querySelectorAll(".type-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        status = btn.dataset.status;
+        document.querySelectorAll(".type-pill").forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      });
+    });
+
+    const rollInput = document.getElementById("roll");
+    rollInput.addEventListener("input", () => {
+      rollInput.value = rollInput.value.replace(/\D/g, "").slice(0, 13);
+    });
+
+    document.getElementById("student-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById("error");
+      const successBox = document.getElementById("success");
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      const name = document.getElementById("name").value.trim();
+      const roll = rollInput.value.trim();
+      const room = document.getElementById("room").value.trim();
+      const course = document.getElementById("course").value.trim();
+      const parentName = document.getElementById("parent-name").value.trim();
+      const parentEmail = document.getElementById("parent-email").value.trim();
+
+      if (!name || !roll || !room || !course) {
+        errorBox.textContent = "Please fill name, roll number, room, and course.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+      if (roll.length < 8) {
+        errorBox.textContent = "Roll number looks too short.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      const result = addStudent({
+        id: "stu-" + Date.now(),
+        name,
+        roll,
+        room,
+        floor: Number(document.getElementById("floor").value) || 2,
+        status,
+        course,
+        parentName,
+        parentEmail,
+      });
+
+      if (!result.ok) {
+        errorBox.textContent = result.error || "Could not add this student.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      successBox.classList.remove("hidden");
+      document.getElementById("submit-btn").textContent = "Added ✓";
+      document.getElementById("submit-btn").disabled = true;
+      setTimeout(() => {
+        window.location.href = "/students";
+      }, 900);
+    });
+  </script>
+</body>
+</html>

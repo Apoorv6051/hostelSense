@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense - Evening attendance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <style>
+    .face-card { max-width: 760px; margin: 0 auto; }
+    .camera-wrap { background: #111827; border-radius: 12px; overflow: hidden; margin: 1.5rem 0; }
+    #video { display: block; width: 100%; max-height: 430px; object-fit: cover; background: #05070d; }
+    .face-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+    .face-status { color: #64748b; }
+    .face-status.success { color: #047857; }
+    .face-status.error { color: #b91c1c; }
+    .window-note { padding: 0.85rem 1rem; background: #fff7ed; color: #9a3412; border-left: 3px solid #f59e0b; }
+    .window-note.open { background: #ecfdf5; color: #047857; border-left-color: #10b981; }
+  </style>
+</head>
+<body>
+  <div class="mobile-bar">
+    <div class="mobile-brand">
+      <div class="logo-mark" style="width:34px;height:34px;border-radius:10px;font-size:0.8rem;">HS</div>
+      Evening attendance
+    </div>
+    <a class="menu-btn" href="/student#attendance" aria-label="Back" style="text-decoration:none;">&larr;</a>
+  </div>
+
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Mark evening attendance</h1>
+          <p>Face verification is enabled for testing.</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="/student#attendance">&larr; Back to dashboard</a>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="card face-card">
+          <div class="window-note" id="window-note"></div>
+          <p style="margin-top:1rem;">Look at the camera, then verify your face to record today's evening headcount.</p>
+          <div class="camera-wrap"><video id="video" autoplay playsinline muted></video></div>
+          <canvas id="canvas" width="640" height="480" hidden></canvas>
+          <div class="face-actions">
+            <button class="btn-primary" type="button" id="verify-btn" disabled>Verify and mark attendance</button>
+            <span class="face-status" id="status" role="status" aria-live="polite">Starting camera...</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+  <script>
+    const student = { name: "Aarav Sharma", roll: "2401641520038" };
+    try {
+      const saved = sessionStorage.getItem("hs_student");
+      if (saved) Object.assign(student, JSON.parse(saved));
+    } catch (_) {}
+
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const verifyButton = document.getElementById("verify-btn");
+    const status = document.getElementById("status");
+    const windowNote = document.getElementById("window-note");
+    let stream;
+
+    function eveningWindowIsOpen() {
+      return true;
+    }
+
+    function updateWindow() {
+      const isOpen = eveningWindowIsOpen();
+      windowNote.textContent = isOpen
+        ? "Testing mode: attendance is available now."
+        : "Attendance is currently unavailable.";
+      windowNote.classList.toggle("open", isOpen);
+      verifyButton.disabled = !isOpen || !stream;
+      return isOpen;
+    }
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        status.textContent = "Camera ready.";
+        updateWindow();
+      } catch (_) {
+        status.textContent = "Camera permission is required.";
+        status.className = "face-status error";
+      }
+    }
+
+    verifyButton.addEventListener("click", () => {
+      if (!updateWindow()) return;
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      verifyButton.disabled = true;
+      status.className = "face-status";
+      status.textContent = "Checking your face...";
+
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append("roll_number", student.roll);
+        formData.append("image", blob, "evening-attendance.jpg");
+        try {
+          const response = await fetch("http://127.0.0.1:5001/verify-face", { method: "POST", body: formData });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "Verification service error");
+          if (!result.matched) throw new Error(result.reason || "Face did not match the registered photo.");
+
+          const now = new Date();
+          addAttendance({
+            id: `attendance-${student.roll}-${now.toISOString().slice(0, 10)}`,
+            roll: student.roll,
+            date: now.toISOString().slice(0, 10),
+            time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            type: "evening",
+            verified: true,
+          });
+          status.className = "face-status success";
+          status.textContent = "Face verified. Evening attendance marked.";
+          verifyButton.textContent = "Attendance marked";
+        } catch (error) {
+          status.className = "face-status error";
+          status.textContent = error.message;
+          updateWindow();
+        }
+      }, "image/jpeg");
+    });
+
+    window.addEventListener("beforeunload", () => stream?.getTracks().forEach((track) => track.stop()));
+    updateWindow();
+    startCamera();
+  </script>
+</body>
+</html>

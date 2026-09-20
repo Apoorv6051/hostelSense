@@ -136,6 +136,7 @@ function visitorStatusChip(status) {
   if (status === "checked_in") return { className: "approved", label: "Checked in" };
   if (status === "completed") return { className: "approved", label: "Done" };
   if (status === "rejected") return { className: "rejected", label: "Denied" };
+  if (status === "pending") return { className: "pending", label: "Awaiting warden" };
   return { className: "pending", label: "Expected" };
 }
 
@@ -261,7 +262,17 @@ function renderNoticeHtml(n) {
   </div>`;
 }
 
-/* ========== Attendance (generated demo, not persisted) ========== */
+/* ========== Attendance ========== */
+
+const HS_ATTENDANCE_KEY = "hs_attendance";
+
+function addAttendance(item) {
+  const records = hsLoad(HS_ATTENDANCE_KEY, []);
+  const alreadyRecorded = records.some(
+    (record) => record.roll === item.roll && record.date === item.date && record.type === item.type
+  );
+  if (!alreadyRecorded) hsSave(HS_ATTENDANCE_KEY, [item, ...records]);
+}
 
 function loadAttendance(roll) {
   const days = [];
@@ -326,6 +337,22 @@ function loadAttendance(roll) {
       events,
     });
   }
+
+  hsLoad(HS_ATTENDANCE_KEY, [])
+    .filter((record) => record.roll === roll)
+    .forEach((record) => {
+      const day = days.find((item) => item.date.slice(0, 10) === record.date);
+      if (!day) return;
+      day.status = "present";
+      day.events = day.events.filter((event) => event.label !== "Evening attendance");
+      day.events.push({
+        time: record.time,
+        label: "Evening attendance",
+        detail: "Face verified · evening headcount",
+        kind: "in",
+      });
+    });
+
   return days;
 }
 
@@ -349,6 +376,22 @@ const DEMO_STUDENTS = [
   { name: "Meera Iyer", roll: "2401641520067", room: "C-207", floor: 2, status: "inside", course: "B.Tech CSE · Year 2" },
 ];
 
+const HS_STUDENTS_KEY = "hs_students";
+
 function loadStudents() {
-  return DEMO_STUDENTS.slice();
+  return hsLoad(HS_STUDENTS_KEY, DEMO_STUDENTS);
+}
+
+function studentByRoll(roll) {
+  return loadStudents().find((s) => String(s.roll) === String(roll));
+}
+
+function addStudent(student) {
+  const list = loadStudents();
+  if (list.some((s) => String(s.roll) === String(student.roll))) {
+    return { ok: false, error: "A student with this roll number is already on the roster." };
+  }
+  list.unshift(student);
+  hsSave(HS_STUDENTS_KEY, list);
+  return { ok: true, list };
 }

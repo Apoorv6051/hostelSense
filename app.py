@@ -72,6 +72,8 @@ PAGES = {
     "/gate-pass.html": "gate-pass.html",
     "/attendance": "attendance.html",
     "/attendance.html": "attendance.html",
+    "/mark-attendance": "mark-attendance.html",
+    "/mark-attendance.html": "mark-attendance.html",
     "/visitor": "visitor.html",
     "/visitor.html": "visitor.html",
     "/visit-request": "visit-request.html",
@@ -86,6 +88,8 @@ PAGES = {
     "/notice-new.html": "notice-new.html",
     "/students": "students.html",
     "/students.html": "students.html",
+    "/student-new": "student-new.html",
+    "/student-new.html": "student-new.html",
 }
 
 
