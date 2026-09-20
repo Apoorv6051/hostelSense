@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Visitor desk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}" />
+  <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+</head>
+<body>
+  <div class="mobile-bar"><div class="mobile-brand"><div class="logo-mark">HS</div> Visitor desk</div><a class="menu-btn" href="/warden" aria-label="Back">←</a></div>
+  <div class="app" style="grid-template-columns:1fr;"><div class="main">
+    <header class="topbar"><div class="topbar-left"><h1>Visitor desk</h1><p>Check expected visitors in, track their visit, and close the register.</p></div><div class="topbar-right"><a class="btn-secondary" href="/warden">← Duty desk</a></div></header>
+    <main class="content">
+      <section class="stats" aria-label="Visitor summary">
+        <article class="stat-card"><div class="stat-label">Expected</div><div class="stat-value warn" id="expected">0</div><div class="stat-meta warn">Waiting at the gate</div></article>
+        <article class="stat-card"><div class="stat-label">Checked in</div><div class="stat-value good" id="checked">0</div><div class="stat-meta good">Currently visiting</div></article>
+        <article class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" id="completed">0</div><div class="stat-meta">Visits closed today</div></article>
+        <article class="stat-card"><div class="stat-label">Total records</div><div class="stat-value" id="total">0</div><div class="stat-meta">Local visitor register</div></article>
+      </section>
+      <section class="card"><div class="card-head"><h2>Visitor register</h2><span class="link-sm" id="count"></span></div><ul class="list" id="visitor-list"></ul></section>
+    </main>
+  </div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    const toast = document.getElementById("toast");
+    function notice(message) { toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1800); }
+    function render() {
+      const visitors = loadVisitors();
+      ["expected", "checked", "completed"].forEach((status) => document.getElementById(status).textContent = visitors.filter((v) => v.status === (status === "checked" ? "checked_in" : status)).length);
+      document.getElementById("total").textContent = visitors.length;
+      document.getElementById("count").textContent = `${visitors.length} records`;
+      document.getElementById("visitor-list").innerHTML = visitors.length ? visitors.map((v) => {
+        const chip = visitorStatusChip(v.status);
+        const action = v.status === "expected" ? `<button class="btn-approve" data-status="checked_in" data-id="${escapeHtml(v.id)}">Check in</button>` : v.status === "checked_in" ? `<button class="btn-secondary" data-status="completed" data-id="${escapeHtml(v.id)}">Check out</button>` : `<span class="chip ${chip.className}">${chip.label}</span>`;
+        return `<li class="list-item list-item-stack"><div class="list-item-top"><div class="list-item-main"><strong>${escapeHtml(v.name)} <span class="tag in">${escapeHtml(v.relationLabel || "Visitor")}</span></strong><span>Visiting ${escapeHtml(v.studentName)} · ${formatWhen(v.when)}</span><span style="display:block;margin-top:.35rem;">${escapeHtml(v.purpose || "No purpose recorded")}${v.phone ? ` · ${escapeHtml(v.phone)}` : ""}</span></div>${action}</div></li>`;
+      }).join("") : `<li class="empty-state">No visitor records yet.</li>`;
+    }
+    document.getElementById("visitor-list").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-status]");
+      if (!button) return;
+      updateVisitor(button.dataset.id, { status: button.dataset.status });
+      notice(button.dataset.status === "checked_in" ? "Visitor checked in." : "Visit marked complete.");
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>

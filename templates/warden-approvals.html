@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Warden approvals</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}" />
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
+</head>
+<body>
+  <div class="mobile-bar"><div class="mobile-brand"><div class="logo-mark">HS</div> Warden desk</div><a class="menu-btn" href="/warden" aria-label="Back">←</a></div>
+  <div class="app" style="grid-template-columns:1fr;"><div class="main">
+    <header class="topbar"><div class="topbar-left"><h1>Gate pass approvals</h1><p>Review requests that have already cleared the parent desk.</p></div><div class="topbar-right"><a class="btn-secondary" href="/warden">← Duty desk</a></div></header>
+    <main class="content">
+      <section class="stats" aria-label="Approval summary">
+        <article class="stat-card"><div class="stat-label">Needs review</div><div class="stat-value" id="pending">0</div><div class="stat-meta warn">Parent-approved requests</div></article>
+        <article class="stat-card"><div class="stat-label">Approved</div><div class="stat-value good" id="approved">0</div><div class="stat-meta good">Ready at the gate</div></article>
+        <article class="stat-card"><div class="stat-label">Rejected</div><div class="stat-value bad" id="rejected">0</div><div class="stat-meta">Closed requests</div></article>
+        <article class="stat-card"><div class="stat-label">All requests</div><div class="stat-value" id="total">0</div><div class="stat-meta">Current local register</div></article>
+      </section>
+      <section class="card"><div class="card-head"><h2>Request queue</h2><span class="link-sm" id="queue-label"></span></div><ul class="list" id="queue"></ul></section>
+    </main>
+  </div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    const toast = document.getElementById("toast");
+    function notice(message) { toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 1800); }
+    function render() {
+      const passes = loadPasses();
+      const pending = passes.filter((p) => p.parentStatus === "approved" && p.wardenStatus === "pending");
+      document.getElementById("pending").textContent = pending.length;
+      document.getElementById("approved").textContent = passes.filter((p) => overallStatus(p) === "approved").length;
+      document.getElementById("rejected").textContent = passes.filter((p) => overallStatus(p) === "rejected").length;
+      document.getElementById("total").textContent = passes.length;
+      document.getElementById("queue-label").textContent = `${pending.length} waiting`;
+      document.getElementById("queue").innerHTML = passes.length ? passes.map((p) => {
+        const action = p.parentStatus === "approved" && p.wardenStatus === "pending"
+          ? `<div class="btn-row"><button class="btn-approve" data-action="approved" data-id="${escapeHtml(p.id)}">Approve</button><button class="btn-reject" data-action="rejected" data-id="${escapeHtml(p.id)}">Reject</button></div>`
+          : `<span class="chip ${overallStatus(p) === "approved" ? "approved" : overallStatus(p) === "rejected" ? "rejected" : "pending"}">${statusLabel(p)}</span>`;
+        return `<li class="list-item list-item-stack"><div class="list-item-top"><div class="list-item-main"><strong>${escapeHtml(p.studentName)} — ${escapeHtml(p.destination)}</strong><span>${escapeHtml(p.typeLabel || "Gate pass")} · ${formatWhen(p.from)} to ${formatWhen(p.to)}</span><div class="meta-row"><span class="meta-pill">Parent: ${escapeHtml(p.parentStatus)}</span><span class="meta-pill">Warden: ${escapeHtml(p.wardenStatus)}</span></div><span style="display:block;margin-top:.35rem;">${escapeHtml(p.reason || "")}</span></div>${action}</div></li>`;
+      }).join("") : `<li class="empty-state">No gate pass requests have been submitted.</li>`;
+    }
+    document.getElementById("queue").addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      await updatePassStatusInDB(button.dataset.id, { wardenStatus: button.dataset.action });
+      notice(button.dataset.action === "approved" ? "Pass approved." : "Pass rejected.");
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>

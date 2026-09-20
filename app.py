@@ -90,6 +90,10 @@ PAGES = {
     "/students.html": "students.html",
     "/student-new": "student-new.html",
     "/student-new.html": "student-new.html",
+    "/warden/approvals": "warden-approvals.html",
+    "/warden/visitors": "warden-visitors.html",
+    "/warden/alerts": "warden-alerts.html",
+    "/warden/reports": "warden-reports.html",
 }
 
 

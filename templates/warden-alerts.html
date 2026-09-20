@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Notices and alerts</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}" />
+  <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+</head>
+<body>
+  <div class="mobile-bar"><div class="mobile-brand"><div class="logo-mark">HS</div> Notices</div><a class="menu-btn" href="/warden" aria-label="Back">←</a></div>
+  <div class="app" style="grid-template-columns:1fr;"><div class="main">
+    <header class="topbar"><div class="topbar-left"><h1>Notices and alerts</h1><p>Keep the hostel register clear for students, parents, and staff.</p></div><div class="topbar-right"><a class="btn-primary" href="/notice-new">+ New notice</a><a class="btn-secondary" href="/warden">← Duty desk</a></div></header>
+    <main class="content">
+      <section class="card"><div class="card-head"><h2>Published notices</h2><span class="link-sm" id="count"></span></div><div id="notice-list"></div></section>
+      <section class="card"><div class="card-head"><h2>Routine desk reminders</h2></div><div class="notice"><span class="notice-dot amber"></span><div><strong>Evening headcount at 9:00 PM</strong><p>Prepare the floor sweep and check unresolved late-return flags.</p><time>Scheduled today</time></div></div><div class="notice"><span class="notice-dot"></span><div><strong>Main gate camera</strong><p>Face-verification stream is expected to remain online during gate hours.</p><time>System reminder</time></div></div></section>
+    </main>
+  </div></div>
+  <script>
+    const notices = loadNotices();
+    document.getElementById("count").textContent = `${notices.length} published`;
+    document.getElementById("notice-list").innerHTML = notices.length ? notices.map((n) => `<div class="notice"><span class="notice-dot ${n.priority === "high" ? "amber" : ""}"></span><div><strong>${escapeHtml(n.title)}</strong><p>${escapeHtml(n.body)}</p><time>${escapeHtml(n.author || "Warden office")} · ${formatWhen(n.createdAt)}</time></div></div>`).join("") : `<div class="empty-state">No notices have been published.</div>`;
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Warden reports</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/warden.css') }}" />
+  <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/passes.js') }}"></script>
+</head>
+<body>
+  <div class="mobile-bar"><div class="mobile-brand"><div class="logo-mark">HS</div> Reports</div><a class="menu-btn" href="/warden" aria-label="Back">←</a></div>
+  <div class="app" style="grid-template-columns:1fr;"><div class="main">
+    <header class="topbar"><div class="topbar-left"><h1>Hostel reports</h1><p>A quick operational view of Block C activity.</p></div><div class="topbar-right"><button class="btn-secondary" id="print-report" type="button">Print report</button><a class="btn-secondary" href="/warden">← Duty desk</a></div></header>
+    <main class="content">
+      <section class="stats" aria-label="Report summary">
+        <article class="stat-card"><div class="stat-label">Roster</div><div class="stat-value" id="roster">0</div><div class="stat-meta">Students in Block C</div></article>
+        <article class="stat-card"><div class="stat-label">Open complaints</div><div class="stat-value warn" id="complaints">0</div><div class="stat-meta warn">Need staff follow-up</div></article>
+        <article class="stat-card"><div class="stat-label">Pending passes</div><div class="stat-value" id="passes">0</div><div class="stat-meta">Waiting for warden</div></article>
+        <article class="stat-card"><div class="stat-label">Visitor activity</div><div class="stat-value good" id="visitors">0</div><div class="stat-meta good">Expected or checked in</div></article>
+      </section>
+      <div class="grid-2">
+        <section class="card"><div class="card-head"><h2>Operational breakdown</h2></div><ul class="timeline" id="breakdown"></ul></section>
+        <section class="card"><div class="card-head"><h2>Export note</h2></div><p style="color:var(--muted);line-height:1.6;">This report uses the current hostel register stored in this browser. Print it before the end-of-shift handover to keep a paper copy at the warden desk.</p><div class="form-actions"><button class="btn-primary" id="print-report-2" type="button">Print this report</button></div></section>
+      </div>
+    </main>
+  </div></div>
+  <script>
+    const students = loadStudents(), complaints = loadComplaints(), passes = loadPasses(), visitors = loadVisitors();
+    const pendingPasses = passes.filter((p) => p.parentStatus === "approved" && p.wardenStatus === "pending").length;
+    document.getElementById("roster").textContent = students.length;
+    document.getElementById("complaints").textContent = complaints.filter((c) => c.status !== "resolved").length;
+    document.getElementById("passes").textContent = pendingPasses;
+    document.getElementById("visitors").textContent = visitors.filter((v) => v.status === "expected" || v.status === "checked_in").length;
+    document.getElementById("breakdown").innerHTML = [
+      ["Inside the hostel", `${students.filter((s) => s.status === "inside").length} students`, "Face-verified register"],
+      ["Out on approved pass", `${students.filter((s) => s.status === "out").length} students`, "Gate pass register"],
+      ["Visitor appointments", `${visitors.filter((v) => v.status === "expected").length} expected`, "Visitor desk"],
+      ["Unresolved issues", `${complaints.filter((c) => c.status !== "resolved").length} reports`, "Maintenance queue"],
+    ].map(([label, value, detail]) => `<li><div class="time">${escapeHtml(value)}</div><div class="event"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(detail)}</span></div></li>`).join("");
+    document.querySelectorAll("#print-report, #print-report-2").forEach((button) => button.addEventListener("click", () => window.print()));
+  </script>
+</body>
+</html>
