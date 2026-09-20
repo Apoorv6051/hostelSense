@@ -43,20 +43,21 @@
         return `<li class="list-item list-item-stack"><div class="list-item-top"><div class="list-item-main"><strong>${escapeHtml(v.name)} <span class="tag in">${escapeHtml(v.relationLabel || "Visitor")}</span></strong><span>Visiting ${escapeHtml(v.studentName)} · ${formatWhen(v.when)}</span><span style="display:block;margin-top:.35rem;">${escapeHtml(v.purpose || "No purpose recorded")}${v.phone ? ` · ${escapeHtml(v.phone)}` : ""}</span></div>${action}</div></li>`;
       }).join("") : `<li class="empty-state">No visitor records yet.</li>`;
     }
-    document.getElementById("visitor-list").addEventListener("click", (event) => {
+    document.getElementById("visitor-list").addEventListener("click", async (event) => {
       const button = event.target.closest("button[data-status]");
       if (!button) return;
       const visitor = loadVisitors().find((item) => item.id === button.dataset.id);
       if (button.dataset.issueQr === "true" && visitor) {
-        issueVisitorQr(visitor);
+        await issueVisitorQr(visitor);
         notice("Visit approved. QR pass issued to the parent portal.");
       } else {
-        updateVisitor(button.dataset.id, {
+        await updateVisitorInDB(button.dataset.id, {
           status: button.dataset.status,
           ...(button.dataset.status === "checked_in" ? { arrivedAt: new Date().toISOString() } : {}),
         });
         notice(button.dataset.status === "checked_in" ? "Visitor checked in. Student notified." : "Visit marked complete.");
       }
+      syncVisitorsFromDB().then(render);
       render();
     });
     render();

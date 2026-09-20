@@ -47,6 +47,47 @@ class GatePass(db.Model):
         }
 
 
+class Visitor(db.Model):
+    __tablename__ = "visitors"
+
+    id = db.Column(db.String(80), primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    relation = db.Column(db.String(30), default="other")
+    relation_label = db.Column(db.String(50), default="Visitor")
+    student_name = db.Column(db.String(100), nullable=False)
+    roll = db.Column(db.String(20), nullable=False)
+    when = db.Column(db.String(50), nullable=False)
+    purpose = db.Column(db.Text, nullable=False)
+    phone = db.Column(db.String(20), default="")
+    status = db.Column(db.String(20), default="pending")
+    created_by = db.Column(db.String(20), default="student")
+    created_at = db.Column(db.String(50), default=lambda: datetime.utcnow().isoformat())
+    qr_token = db.Column(db.String(160))
+    qr_payload = db.Column(db.Text)
+    qr_issued_at = db.Column(db.String(50))
+    arrived_at = db.Column(db.String(50))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "relation": self.relation,
+            "relationLabel": self.relation_label,
+            "studentName": self.student_name,
+            "roll": self.roll,
+            "when": self.when,
+            "purpose": self.purpose,
+            "phone": self.phone or "",
+            "status": self.status,
+            "createdBy": self.created_by,
+            "createdAt": self.created_at,
+            "qrToken": self.qr_token,
+            "qrPayload": self.qr_payload,
+            "qrIssuedAt": self.qr_issued_at,
+            "arrivedAt": self.arrived_at,
+        }
+
+
 def calculate_distance_meters(lat1, lon1, lat2, lon2):
     radius = 6371000
     phi1 = math.radians(lat1)
@@ -162,6 +203,61 @@ def update_status(pass_id):
         record.warden_status = data["wardenStatus"]
     db.session.commit()
     return jsonify({"success": True, "pass": record.to_dict()})
+
+
+@app.route("/api/visitors", methods=["GET"])
+def get_visitors():
+    roll = request.args.get("roll")
+    query = Visitor.query
+    if roll:
+        query = query.filter_by(roll=str(roll))
+    records = query.order_by(Visitor.created_at.desc()).all()
+    return jsonify([record.to_dict() for record in records])
+
+
+@app.route("/api/visitors", methods=["POST"])
+def create_visitor():
+    data = request.get_json() or {}
+    visitor_id = str(data.get("id") or f"vis-{int(datetime.utcnow().timestamp() * 1000)}")
+    record = Visitor.query.filter_by(id=visitor_id).first()
+    if record:
+        return jsonify({"success": True, "visitor": record.to_dict()}), 200
+    record = Visitor(
+        id=visitor_id,
+        name=data.get("name", ""),
+        relation=data.get("relation", "other"),
+        relation_label=data.get("relationLabel", "Visitor"),
+        student_name=data.get("studentName", ""),
+        roll=str(data.get("roll", "")),
+        when=data.get("when", ""),
+        purpose=data.get("purpose", ""),
+        phone=data.get("phone", ""),
+        status=data.get("status", "pending"),
+        created_by=data.get("createdBy", "student"),
+        created_at=data.get("createdAt") or datetime.utcnow().isoformat(),
+    )
+    db.session.add(record)
+    db.session.commit()
+    return jsonify({"success": True, "visitor": record.to_dict()}), 201
+
+
+@app.route("/api/visitors/<visitor_id>/status", methods=["PATCH"])
+def update_visitor(visitor_id):
+    data = request.get_json() or {}
+    record = Visitor.query.filter_by(id=str(visitor_id)).first()
+    if not record:
+        return jsonify({"error": "Visitor not found"}), 404
+    for key, field in (
+        ("status", "status"),
+        ("qrToken", "qr_token"),
+        ("qrPayload", "qr_payload"),
+        ("qrIssuedAt", "qr_issued_at"),
+        ("arrivedAt", "arrived_at"),
+    ):
+        if key in data:
+            setattr(record, field, data[key])
+    db.session.commit()
+    return jsonify({"success": True, "visitor": record.to_dict()})
 
 
 @app.route("/api/verify-location", methods=["POST"])

@@ -128,7 +128,54 @@ function updateVisitor(id, patch) {
   return hsUpdate(HS_VISITORS_KEY, id, patch, DEFAULT_VISITORS);
 }
 
-function issueVisitorQr(visitor) {
+async function syncVisitorsFromDB(roll) {
+  try {
+    const endpoint = roll ? `/api/visitors?roll=${encodeURIComponent(roll)}` : "/api/visitors";
+    const response = await fetch(endpoint);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const remote = await response.json();
+    const local = loadVisitors();
+    const merged = [...remote, ...local.filter((item) => !remote.some((entry) => entry.id === item.id))];
+    hsSave(HS_VISITORS_KEY, merged);
+    return roll ? visitorsForRoll(roll) : merged;
+  } catch (_) {
+    return roll ? visitorsForRoll(roll) : loadVisitors();
+  }
+}
+
+async function addVisitorToDB(visitor) {
+  addVisitor(visitor);
+  try {
+    const response = await fetch("/api/visitors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(visitor),
+    });
+    if (response.ok) {
+      const result = await response.json();
+      if (result.visitor) updateVisitor(result.visitor.id, result.visitor);
+    }
+  } catch (_) {}
+  return loadVisitors();
+}
+
+async function updateVisitorInDB(id, patch) {
+  updateVisitor(id, patch);
+  try {
+    const response = await fetch(`/api/visitors/${encodeURIComponent(id)}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (response.ok) {
+      const result = await response.json();
+      if (result.visitor) updateVisitor(result.visitor.id, result.visitor);
+    }
+  } catch (_) {}
+  return loadVisitors();
+}
+
+async function issueVisitorQr(visitor) {
   const token = visitor.qrToken || `HS-VISIT-${visitor.id}-${Date.now()}`;
   const payload = {
     type: "hostelsense-visitor",
@@ -142,7 +189,7 @@ function issueVisitorQr(visitor) {
     requestedFor: visitor.when,
     purpose: visitor.purpose || "",
   };
-  updateVisitor(visitor.id, {
+  await updateVisitorInDB(visitor.id, {
     status: "expected",
     qrToken: token,
     qrPayload: JSON.stringify(payload),

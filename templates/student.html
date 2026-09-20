@@ -397,6 +397,7 @@
         .join("");
     }
 
+    syncVisitorsFromDB(student.roll).then(renderVisitors);
     renderVisitors();
     renderStudentNotices();
     renderComplaints();
