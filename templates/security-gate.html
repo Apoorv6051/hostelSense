@@ -41,7 +41,7 @@
       const visitor = loadVisitors().find((item) => item.qrToken === payload.token || item.qrPayload === value);
       if (!visitor) return showResult("This QR is not valid for an approved HostelSense visit.", true);
       if (visitor.status !== "expected") return showResult(`This visitor pass is already ${visitor.status.replace("_", " ")}.`, true);
-      updateVisitor(visitor.id, { status: "checked_in", arrivedAt: new Date().toISOString() });
+      updateVisitorInDB(visitor.id, { status: "checked_in", arrivedAt: new Date().toISOString() });
       showResult(`Entry allowed: ${visitor.name} is visiting ${visitor.studentName}. Student notification sent.`);
     }
     document.getElementById("manual-scan").addEventListener("click", () => parseScan(document.getElementById("manual-token").value));

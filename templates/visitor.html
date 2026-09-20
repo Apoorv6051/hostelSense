@@ -138,7 +138,7 @@
       phone.value = phone.value.replace(/\D/g, "").slice(0, 10);
     });
 
-    document.getElementById("visitor-form").addEventListener("submit", (e) => {
+    document.getElementById("visitor-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const errorBox = document.getElementById("error");
       const successBox = document.getElementById("success");
@@ -161,7 +161,7 @@
         return;
       }
 
-      addVisitor({
+      await addVisitorToDB({
         id: "vis-" + Date.now(),
         name,
         relation: selectedType,
