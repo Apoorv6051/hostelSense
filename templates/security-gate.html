@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Security gate</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+  <script src="{{ url_for('static', filename='js/store.js') }}"></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <style>
+    .gate-card { width: min(620px, 100%); margin: 0 auto; }
+    #reader { overflow: hidden; margin: 1rem 0; border: 1px solid var(--line); background: #221c18; }
+    .scan-result { padding: 0.8rem; border-left: 3px solid var(--inside); background: #e8f0e6; color: var(--inside); }
+    .scan-result.error { border-left-color: var(--reject); background: #f8ece8; color: var(--reject); }
+  </style>
+</head>
+<body>
+  <div class="mobile-bar"><div class="mobile-brand"><div class="logo-mark">HS</div> Security gate</div><a class="menu-btn" href="/warden" aria-label="Back">←</a></div>
+  <div class="app" style="grid-template-columns:1fr;"><div class="main">
+    <header class="topbar"><div class="topbar-left"><h1>Visitor entry scanner</h1><p>Scan an approved visitor QR at the main gate.</p></div><div class="topbar-right"><a class="btn-secondary" href="/warden">← Warden desk</a></div></header>
+    <main class="content"><section class="card gate-card">
+      <div id="reader"></div>
+      <p style="color:var(--muted);line-height:1.5;">Allow camera access, then hold the visitor’s QR code inside the frame. The guard can also enter the code manually if the camera is unavailable.</p>
+      <div class="form-actions">
+        <input id="manual-token" type="text" placeholder="Paste QR token or payload" style="flex:1;min-width:220px;" />
+        <button class="btn-primary" id="manual-scan" type="button">Verify entry</button>
+      </div>
+      <div id="result" class="scan-result hidden" role="status" aria-live="polite"></div>
+    </section></main>
+  </div></div>
+  <script>
+    const resultBox = document.getElementById("result");
+    function showResult(message, error = false) {
+      resultBox.textContent = message;
+      resultBox.classList.toggle("hidden", false);
+      resultBox.classList.toggle("error", error);
+    }
+    function parseScan(value) {
+      let payload;
+      try { payload = JSON.parse(value); } catch (_) { payload = { token: value.trim() }; }
+      const visitor = loadVisitors().find((item) => item.qrToken === payload.token || item.qrPayload === value);
+      if (!visitor) return showResult("This QR is not valid for an approved HostelSense visit.", true);
+      if (visitor.status !== "expected") return showResult(`This visitor pass is already ${visitor.status.replace("_", " ")}.`, true);
+      updateVisitor(visitor.id, { status: "checked_in", arrivedAt: new Date().toISOString() });
+      showResult(`Entry allowed: ${visitor.name} is visiting ${visitor.studentName}. Student notification sent.`);
+    }
+    document.getElementById("manual-scan").addEventListener("click", () => parseScan(document.getElementById("manual-token").value));
+    function startScanner() {
+      if (!window.Html5Qrcode) return;
+      const scanner = new Html5Qrcode("reader");
+      scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 220 }, (decoded) => {
+        parseScan(decoded);
+        scanner.stop().catch(() => {});
+      }, () => {});
+    }
+    window.addEventListener("load", () => setTimeout(startScanner, 600));
+  </script>
+</body>
+</html>

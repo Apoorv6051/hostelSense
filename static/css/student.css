@@ -1119,6 +1119,45 @@ a:hover {
   background: transparent;
 }
 
+.qr-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--inside);
+  background: #f3ead6;
+}
+
+.qr-panel strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.qr-panel p {
+  max-width: 42ch;
+  margin-bottom: 0.65rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.qr-code {
+  flex: 0 0 auto;
+  padding: 0.35rem;
+  background: #fbf6ea;
+  border: 1px solid var(--line);
+}
+
+@media (max-width: 560px) {
+  .qr-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .list-item-stack {
   display: flex;
   flex-direction: column;

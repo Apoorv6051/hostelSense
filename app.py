@@ -94,6 +94,8 @@ PAGES = {
     "/warden/visitors": "warden-visitors.html",
     "/warden/alerts": "warden-alerts.html",
     "/warden/reports": "warden-reports.html",
+    "/security-gate": "security-gate.html",
+    "/security-gate.html": "security-gate.html",
 }
 
 
