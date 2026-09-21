@@ -2,12 +2,13 @@ import face_recognition
 import json
 import os
 
+
 def register_student(roll_number, image_path):
     image = face_recognition.load_image_file(image_path)
     encodings = face_recognition.face_encodings(image)
 
     if len(encodings) == 0:
-        print("Koi face detect nahi hua, dusri photo try karo")
+        print("No face was detected in the image. Please try a different photo.")
         return
 
     encoding = encodings[0].tolist()
@@ -23,7 +24,8 @@ def register_student(roll_number, image_path):
     with open("encodings.json", "w") as f:
         json.dump(data, f)
 
-    print(f"{roll_number} register ho gaya!")
+    print(f"Student {roll_number} has been registered successfully.")
+
 
 if __name__ == "__main__":
     register_student("2401641520038", "known_faces/aarav.jpg")

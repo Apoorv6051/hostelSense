@@ -8,9 +8,11 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
+
 @app.route("/", methods=["GET"])
 def face_check_page():
     return send_file("test-camera.html")
+
 
 def load_known_encodings():
     if not os.path.exists("encodings.json"):
@@ -18,14 +20,15 @@ def load_known_encodings():
     with open("encodings.json", "r") as f:
         return json.load(f)
 
+
 @app.route("/verify-face", methods=["POST"])
 def verify_face():
     if "image" not in request.files:
-        return jsonify({"error": "photo nahi mili"}), 400
+        return jsonify({"error": "No image was provided"}), 400
 
     roll_number = request.form.get("roll_number")
     if not roll_number:
-        return jsonify({"error": "roll_number nahi mila"}), 400
+        return jsonify({"error": "Roll number is required"}), 400
 
     file = request.files["image"]
     temp_path = "temp_capture.jpg"
@@ -35,13 +38,13 @@ def verify_face():
     live_encodings = face_recognition.face_encodings(live_image)
 
     if len(live_encodings) == 0:
-        return jsonify({"matched": False, "reason": "koi face detect nahi hua"}), 200
+        return jsonify({"matched": False, "reason": "No face was detected in the image"}), 200
 
     live_encoding = live_encodings[0]
 
     known_data = load_known_encodings()
     if roll_number not in known_data:
-        return jsonify({"error": "ye student registered nahi hai"}), 404
+        return jsonify({"error": "This student is not registered"}), 404
 
     known_encoding = np.array(known_data[roll_number])
 
@@ -53,6 +56,7 @@ def verify_face():
         "distance": float(distance),
         "roll_number": roll_number
     })
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
