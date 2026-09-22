@@ -175,6 +175,20 @@ async function updateVisitorInDB(id, patch) {
   return loadVisitors();
 }
 
+async function verifyVisitorEntry(value) {
+  const response = await fetch("/api/visitors/verify-entry", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ value }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.error || `HTTP ${response.status}`);
+  }
+  if (result.visitor) updateVisitor(result.visitor.id, result.visitor);
+  return result.visitor;
+}
+
 async function issueVisitorQr(visitor) {
   const token = visitor.qrToken || `HS-VISIT-${visitor.id}-${Date.now()}`;
   const payload = {

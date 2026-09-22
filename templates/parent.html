@@ -343,6 +343,9 @@
 
     syncVisitorsFromDB(parent.childRoll).then(renderParentVisitors);
     renderParentVisitors();
+    window.setInterval(() => {
+      syncVisitorsFromDB(parent.childRoll).then(renderParentVisitors);
+    }, 15000);
 
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");

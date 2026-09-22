@@ -35,22 +35,30 @@
       resultBox.classList.toggle("hidden", false);
       resultBox.classList.toggle("error", error);
     }
-    function parseScan(value) {
-      let payload;
-      try { payload = JSON.parse(value); } catch (_) { payload = { token: value.trim() }; }
-      const visitor = loadVisitors().find((item) => item.qrToken === payload.token || item.qrPayload === value);
-      if (!visitor) return showResult("This QR is not valid for an approved HostelSense visit.", true);
-      if (visitor.status !== "expected") return showResult(`This visitor pass is already ${visitor.status.replace("_", " ")}.`, true);
-      updateVisitorInDB(visitor.id, { status: "checked_in", arrivedAt: new Date().toISOString() });
-      showResult(`Entry allowed: ${visitor.name} is visiting ${visitor.studentName}. Student notification sent.`);
+    let scanInProgress = false;
+    async function parseScan(value) {
+      if (scanInProgress) return;
+      const scanValue = String(value || "").trim();
+      if (!scanValue) return showResult("Scan a visitor QR code or enter its value.", true);
+      scanInProgress = true;
+      try {
+        const visitor = await verifyVisitorEntry(scanValue);
+        showResult(`Entry allowed: ${visitor.name} is visiting ${visitor.studentName}. Student notification sent.`);
+      } catch (error) {
+        showResult(error.message || "This QR is not valid for an approved HostelSense visit.", true);
+      } finally {
+        scanInProgress = false;
+      }
     }
-    document.getElementById("manual-scan").addEventListener("click", () => parseScan(document.getElementById("manual-token").value));
+    document.getElementById("manual-scan").addEventListener("click", () => {
+      parseScan(document.getElementById("manual-token").value);
+    });
     function startScanner() {
       if (!window.Html5Qrcode) return;
       const scanner = new Html5Qrcode("reader");
       scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 220 }, (decoded) => {
-        parseScan(decoded);
         scanner.stop().catch(() => {});
+        parseScan(decoded);
       }, () => {});
     }
     window.addEventListener("load", () => setTimeout(startScanner, 600));

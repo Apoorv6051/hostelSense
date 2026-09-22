@@ -1,3 +1,4 @@
+import json
 import math
 from datetime import datetime
 
@@ -256,6 +257,35 @@ def update_visitor(visitor_id):
     ):
         if key in data:
             setattr(record, field, data[key])
+    db.session.commit()
+    return jsonify({"success": True, "visitor": record.to_dict()})
+
+
+@app.route("/api/visitors/verify-entry", methods=["POST"])
+def verify_visitor_entry():
+    data = request.get_json() or {}
+    scan_value = str(data.get("value") or "").strip()
+    if not scan_value:
+        return jsonify({"error": "QR value required"}), 400
+
+    token = scan_value
+    try:
+        payload = json.loads(scan_value)
+        if isinstance(payload, dict):
+            token = str(payload.get("token") or "").strip()
+    except (TypeError, ValueError, AttributeError):
+        token = scan_value
+
+    record = Visitor.query.filter_by(qr_token=token).first()
+    if not record:
+        record = Visitor.query.filter_by(qr_payload=scan_value).first()
+    if not record:
+        return jsonify({"error": "Visitor QR not found"}), 404
+    if record.status != "expected":
+        return jsonify({"error": f"Visitor pass is already {record.status.replace('_', ' ')}"}), 409
+
+    record.status = "checked_in"
+    record.arrived_at = datetime.utcnow().isoformat()
     db.session.commit()
     return jsonify({"success": True, "visitor": record.to_dict()})
 

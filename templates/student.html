@@ -398,6 +398,9 @@
     }
 
     syncVisitorsFromDB(student.roll).then(renderVisitors);
+    window.setInterval(() => {
+      syncVisitorsFromDB(student.roll).then(renderVisitors);
+    }, 15000);
     renderVisitors();
     renderStudentNotices();
     renderComplaints();
