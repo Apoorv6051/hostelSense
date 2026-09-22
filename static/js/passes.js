@@ -95,20 +95,17 @@ async function fetchPassesFromDB(roll) {
 }
 
 async function addPassToDB(pass) {
-  addPass(pass);
-  try {
-    const res = await fetch("/api/passes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pass),
-    });
-    if (res.ok) {
-      const result = await res.json();
-      if (result.pass) addPass(result.pass);
-    }
-  } catch (_) {
-    /* stay on local cache */
+  const res = await fetch("/api/passes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(pass),
+  });
+  if (!res.ok) {
+    throw new Error("HTTP " + res.status);
   }
+  const result = await res.json();
+  if (!result.pass) throw new Error("Pass was not returned by the server");
+  addPass(result.pass);
   return loadPasses();
 }
 
