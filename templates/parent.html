@@ -384,7 +384,8 @@
       document.getElementById("gate-qr-modal").classList.remove("hidden");
     }
 
-    function showLatestVisitorQr() {
+    async function showLatestVisitorQr() {
+      await syncVisitorsFromDB(parent.childRoll);
       const approved = visitorsForRoll(parent.childRoll).find(
         (visitor) => visitor.status === "expected" && visitor.qrPayload
       );

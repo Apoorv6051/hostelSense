@@ -417,7 +417,9 @@
 
       ul.querySelectorAll("[data-vis-approve]").forEach((btn) => {
         btn.addEventListener("click", async () => {
-          await updateVisitorInDB(btn.dataset.visApprove, { status: "expected" });
+          const visitor = loadVisitors().find((item) => item.id === btn.dataset.visApprove);
+          if (!visitor) return;
+          await issueVisitorQr(visitor);
           showToast("Visit approved. Visitor is expected at the gate.");
           renderVisitors();
         });
