@@ -175,6 +175,20 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="qr-modal hidden" id="gate-qr-modal" role="dialog" aria-modal="true" aria-labelledby="gate-qr-title">
+    <div class="qr-modal-card">
+      <div class="card-head">
+        <div>
+          <h2 id="gate-qr-title">Show entry QR</h2>
+          <p id="gate-qr-details" class="qr-modal-details"></p>
+        </div>
+        <button type="button" class="btn-secondary" id="close-gate-qr">Close</button>
+      </div>
+      <strong id="gate-qr-name"></strong>
+      <div id="gate-qr-code" class="qr-modal-code" aria-label="Visitor entry QR code"></div>
+      <p class="qr-modal-hint">Show this QR code to the security guard at the main gate.</p>
+    </div>
+  </div>
 
   <script>
     const parent = {
@@ -309,6 +323,9 @@
               <strong>${escapeHtml(v.name)} · ${escapeHtml(v.relationLabel || "Visitor")}</strong>
               <span>${formatWhen(v.when)} · ${escapeHtml(v.purpose || "")}</span>
             </div>
+            ${v.status === "expected" && v.qrPayload
+              ? `<button type="button" class="btn-primary" data-show-visitor-qr="${escapeHtml(v.id)}">Show QR at gate</button>`
+              : ""}
             <span class="chip ${chip.className}">${chip.label}</span>
           </li>`;
         })
@@ -335,6 +352,41 @@
         colorLight: "#fbf6ea",
       });
     }
+
+    function showVisitorQr(visitorId) {
+      const visitor = visitorsForRoll(parent.childRoll).find((item) => item.id === visitorId);
+      if (!visitor || visitor.status !== "expected" || !visitor.qrPayload) {
+        showToast("The QR code is not available for this visit.");
+        return;
+      }
+      document.getElementById("gate-qr-name").textContent = visitor.name;
+      document.getElementById("gate-qr-details").textContent =
+        `${visitor.studentName} · ${formatWhen(visitor.when)}`;
+      const code = document.getElementById("gate-qr-code");
+      code.innerHTML = "";
+      new QRCode(code, {
+        text: visitor.qrPayload,
+        width: 280,
+        height: 280,
+        colorDark: "#221c18",
+        colorLight: "#fbf6ea",
+      });
+      document.getElementById("gate-qr-modal").classList.remove("hidden");
+    }
+
+    document.getElementById("close-gate-qr").addEventListener("click", () => {
+      document.getElementById("gate-qr-modal").classList.add("hidden");
+    });
+    document.getElementById("gate-qr-modal").addEventListener("click", (event) => {
+      if (event.target.id === "gate-qr-modal") {
+        event.currentTarget.classList.add("hidden");
+      }
+    });
+
+    document.getElementById("visitor-list").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-show-visitor-qr]");
+      if (button) showVisitorQr(button.dataset.showVisitorQr);
+    });
 
     document.getElementById("notice-list").innerHTML = noticesForRole("parents")
       .slice(0, 4)
