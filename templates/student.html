@@ -335,7 +335,11 @@
         .join("");
     }
 
+    fetchPassesFromDB(student.roll).then(renderPasses);
     renderPasses();
+    window.setInterval(() => {
+      fetchPassesFromDB(student.roll).then(renderPasses);
+    }, 15000);
 
     function renderVisitors() {
       const list = visitorsForRoll(student.roll);

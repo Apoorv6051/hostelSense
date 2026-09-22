@@ -131,11 +131,12 @@ function updateVisitor(id, patch) {
 async function syncVisitorsFromDB(roll) {
   try {
     const endpoint = roll ? `/api/visitors?roll=${encodeURIComponent(roll)}` : "/api/visitors";
-    const response = await fetch(endpoint);
+    const response = await fetch(endpoint, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const remote = await response.json();
     const local = loadVisitors();
-    const merged = [...remote, ...local.filter((item) => !remote.some((entry) => entry.id === item.id))];
+    const remoteIds = new Set(remote.map((entry) => entry.id));
+    const merged = [...remote, ...local.filter((item) => !remoteIds.has(item.id))];
     hsSave(HS_VISITORS_KEY, merged);
     return roll ? visitorsForRoll(roll) : merged;
   } catch (_) {
@@ -231,7 +232,7 @@ function visitorStatusChip(status) {
   if (status === "completed") return { className: "approved", label: "Done" };
   if (status === "rejected") return { className: "rejected", label: "Denied" };
   if (status === "pending") return { className: "pending", label: "Awaiting warden" };
-  return { className: "pending", label: "Expected" };
+  return { className: "approved", label: "Approved · QR ready" };
 }
 
 /* ========== Complaints ========== */

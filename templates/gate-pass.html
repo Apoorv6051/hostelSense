@@ -160,7 +160,7 @@
     const errorBox = document.getElementById("error");
     const successBox = document.getElementById("success");
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorBox.classList.add("hidden");
       successBox.classList.add("hidden");
@@ -197,7 +197,13 @@
         createdAt: new Date().toISOString(),
       };
 
-      addPass(pass);
+      try {
+        await addPassToDB(pass);
+      } catch (_) {
+        errorBox.textContent = "The request could not be saved. Please check the server and try again.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
 
       successBox.classList.remove("hidden");
       document.getElementById("submit-btn").textContent = "Submitted ✓";

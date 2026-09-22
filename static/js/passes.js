@@ -81,10 +81,10 @@ async function fetchPassesFromDB(roll) {
     const endpoint = roll
       ? `/api/passes?roll=${encodeURIComponent(roll)}`
       : "/api/passes";
-    const res = await fetch(endpoint);
+    const res = await fetch(endpoint, { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    if (Array.isArray(data) && data.length) {
+    if (Array.isArray(data)) {
       savePasses(data);
       return data;
     }
@@ -95,33 +95,35 @@ async function fetchPassesFromDB(roll) {
 }
 
 async function addPassToDB(pass) {
-  addPass(pass);
-  try {
-    const res = await fetch("/api/passes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pass),
-    });
-    if (res.ok) {
-      const result = await res.json();
-      if (result.pass) addPass(result.pass);
-    }
-  } catch (_) {
-    /* stay on local cache */
+  const res = await fetch("/api/passes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(pass),
+  });
+  if (!res.ok) {
+    throw new Error("HTTP " + res.status);
   }
+  const result = await res.json();
+  if (!result.pass) throw new Error("Pass was not returned by the server");
+  addPass(result.pass);
   return loadPasses();
 }
 
 async function updatePassStatusInDB(id, patch) {
-  updatePass(id, patch);
   try {
-    await fetch(`/api/passes/${encodeURIComponent(id)}/status`, {
+    const response = await fetch(`/api/passes/${encodeURIComponent(id)}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const result = await response.json();
+    if (result.pass) {
+      updatePass(id, result.pass);
+      return result.pass;
+    }
   } catch (_) {
-    /* stay on local cache */
+    updatePass(id, patch);
   }
   return loadPasses();
 }

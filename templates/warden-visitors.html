@@ -60,7 +60,11 @@
       syncVisitorsFromDB().then(render);
       render();
     });
+    syncVisitorsFromDB().then(render);
     render();
+    window.setInterval(() => {
+      syncVisitorsFromDB().then(render);
+    }, 15000);
   </script>
 </body>
 </html>

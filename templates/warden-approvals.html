@@ -46,7 +46,11 @@
       if (!button) return;
       await updatePassStatusInDB(button.dataset.id, { wardenStatus: button.dataset.action });
       notice(button.dataset.action === "approved" ? "Pass approved." : "Pass rejected.");
+      fetchPassesFromDB().then(render);
       render();
+      window.setInterval(() => {
+        fetchPassesFromDB().then(render);
+      }, 15000);
     });
     render();
   </script>
