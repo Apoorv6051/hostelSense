@@ -328,16 +328,18 @@
 
       ul.querySelectorAll("[data-approve]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          updatePass(btn.dataset.approve, { wardenStatus: "approved" });
-          showToast("Gate pass approved by warden.");
-          renderPasses();
+          updatePassStatusInDB(btn.dataset.approve, { wardenStatus: "approved" }).then(() => {
+            showToast("Gate pass approved by warden.");
+            renderPasses();
+          });
         });
       });
       ul.querySelectorAll("[data-reject]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          updatePass(btn.dataset.reject, { wardenStatus: "rejected" });
-          showToast("Gate pass rejected by warden.");
-          renderPasses();
+          updatePassStatusInDB(btn.dataset.reject, { wardenStatus: "rejected" }).then(() => {
+            showToast("Gate pass rejected by warden.");
+            renderPasses();
+          });
         });
       });
     }
@@ -436,7 +438,11 @@
       });
     }
 
+    fetchPassesFromDB().then(renderPasses);
     renderPasses();
+    window.setInterval(() => {
+      fetchPassesFromDB().then(renderPasses);
+    }, 15000);
     renderVisitors();
 
     const sidebar = document.getElementById("sidebar");

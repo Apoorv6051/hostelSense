@@ -81,10 +81,10 @@ async function fetchPassesFromDB(roll) {
     const endpoint = roll
       ? `/api/passes?roll=${encodeURIComponent(roll)}`
       : "/api/passes";
-    const res = await fetch(endpoint);
+    const res = await fetch(endpoint, { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    if (Array.isArray(data) && data.length) {
+    if (Array.isArray(data)) {
       savePasses(data);
       return data;
     }
@@ -113,15 +113,20 @@ async function addPassToDB(pass) {
 }
 
 async function updatePassStatusInDB(id, patch) {
-  updatePass(id, patch);
   try {
-    await fetch(`/api/passes/${encodeURIComponent(id)}/status`, {
+    const response = await fetch(`/api/passes/${encodeURIComponent(id)}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const result = await response.json();
+    if (result.pass) {
+      updatePass(id, result.pass);
+      return result.pass;
+    }
   } catch (_) {
-    /* stay on local cache */
+    updatePass(id, patch);
   }
   return loadPasses();
 }

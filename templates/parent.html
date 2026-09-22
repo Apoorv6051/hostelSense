@@ -279,19 +279,21 @@
 
       ul.querySelectorAll("[data-approve]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          updatePass(btn.dataset.approve, { parentStatus: "approved" });
-          showToast("Gate pass approved by parent.");
-          renderPasses();
+          updatePassStatusInDB(btn.dataset.approve, { parentStatus: "approved" }).then(() => {
+            showToast("Gate pass approved by parent.");
+            renderPasses();
+          });
         });
       });
       ul.querySelectorAll("[data-reject]").forEach((btn) => {
         btn.addEventListener("click", () => {
-          updatePass(btn.dataset.reject, {
+          updatePassStatusInDB(btn.dataset.reject, {
             parentStatus: "rejected",
             wardenStatus: "rejected",
+          }).then(() => {
+            showToast("Gate pass rejected.");
+            renderPasses();
           });
-          showToast("Gate pass rejected.");
-          renderPasses();
         });
       });
     }
@@ -304,7 +306,11 @@
         .replace(/"/g, "&quot;");
     }
 
+    fetchPassesFromDB(parent.childRoll).then(renderPasses);
     renderPasses();
+    window.setInterval(() => {
+      fetchPassesFromDB(parent.childRoll).then(renderPasses);
+    }, 15000);
 
     function renderParentVisitors() {
       const list = visitorsForRoll(parent.childRoll);
