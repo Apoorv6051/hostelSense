@@ -160,10 +160,7 @@
         <section class="card" id="visitors">
           <div class="card-head">
             <h2>Visit the hostel</h2>
-            <div class="btn-row">
-              <button type="button" class="btn-secondary" id="show-visitor-qr">Show QR at gate</button>
-              <a class="link-sm" href="/visit-request">+ New request</a>
-            </div>
+            <a class="link-sm" href="/visit-request">+ New request</a>
           </div>
           <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;line-height:1.5;">
             Request entry as a parent visitor. The warden will confirm your slot at the gate.
@@ -397,7 +394,6 @@
     }
 
     document.getElementById("show-entry-qr").addEventListener("click", showLatestVisitorQr);
-    document.getElementById("show-visitor-qr").addEventListener("click", showLatestVisitorQr);
     document.getElementById("close-gate-qr").addEventListener("click", () => {
       document.getElementById("gate-qr-modal").classList.add("hidden");
     });
