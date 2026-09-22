@@ -416,22 +416,25 @@
         .join("");
 
       ul.querySelectorAll("[data-vis-approve]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          updateVisitor(btn.dataset.visApprove, { status: "expected" });
+        btn.addEventListener("click", async () => {
+          await updateVisitorInDB(btn.dataset.visApprove, { status: "expected" });
           showToast("Visit approved. Visitor is expected at the gate.");
           renderVisitors();
         });
       });
       ul.querySelectorAll("[data-vis-reject]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          updateVisitor(btn.dataset.visReject, { status: "rejected" });
+        btn.addEventListener("click", async () => {
+          await updateVisitorInDB(btn.dataset.visReject, { status: "rejected" });
           showToast("Visit request denied.");
           renderVisitors();
         });
       });
       ul.querySelectorAll("[data-vis-in]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          updateVisitor(btn.dataset.visIn, { status: "checked_in" });
+        btn.addEventListener("click", async () => {
+          await updateVisitorInDB(btn.dataset.visIn, {
+            status: "checked_in",
+            arrivedAt: new Date().toISOString(),
+          });
           showToast("Visitor checked in.");
           renderVisitors();
         });
@@ -443,7 +446,11 @@
     window.setInterval(() => {
       fetchPassesFromDB().then(renderPasses);
     }, 15000);
+    syncVisitorsFromDB().then(renderVisitors);
     renderVisitors();
+    window.setInterval(() => {
+      syncVisitorsFromDB().then(renderVisitors);
+    }, 15000);
 
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
