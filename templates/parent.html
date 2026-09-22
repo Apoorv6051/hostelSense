@@ -76,6 +76,7 @@
             <span class="dot" aria-hidden="true"></span>
             Inside hostel
           </span>
+          <button type="button" class="btn-primary" id="show-entry-qr">Show entry QR</button>
           <button type="button" class="icon-btn" id="notif-btn" aria-label="Notices">
             Notes
             <span class="badge" id="notif-badge">0</span>
@@ -159,7 +160,10 @@
         <section class="card" id="visitors">
           <div class="card-head">
             <h2>Visit the hostel</h2>
-            <a class="link-sm" href="/visit-request">+ New request</a>
+            <div class="btn-row">
+              <button type="button" class="btn-secondary" id="show-visitor-qr">Show QR at gate</button>
+              <a class="link-sm" href="/visit-request">+ New request</a>
+            </div>
           </div>
           <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1rem;line-height:1.5;">
             Request entry as a parent visitor. The warden will confirm your slot at the gate.
@@ -380,6 +384,19 @@
       document.getElementById("gate-qr-modal").classList.remove("hidden");
     }
 
+    function showLatestVisitorQr() {
+      const approved = visitorsForRoll(parent.childRoll).find(
+        (visitor) => visitor.status === "expected" && visitor.qrPayload
+      );
+      if (!approved) {
+        showToast("No approved visitor QR is available yet.");
+        return;
+      }
+      showVisitorQr(approved.id);
+    }
+
+    document.getElementById("show-entry-qr").addEventListener("click", showLatestVisitorQr);
+    document.getElementById("show-visitor-qr").addEventListener("click", showLatestVisitorQr);
     document.getElementById("close-gate-qr").addEventListener("click", () => {
       document.getElementById("gate-qr-modal").classList.add("hidden");
     });
