@@ -31,10 +31,7 @@ def verify_face():
         return jsonify({"error": "Roll number is required"}), 400
 
     file = request.files["image"]
-    temp_path = "temp_capture.jpg"
-    file.save(temp_path)
-
-    live_image = face_recognition.load_image_file(temp_path)
+    live_image = face_recognition.load_image_file(file)
     live_encodings = face_recognition.face_encodings(live_image)
 
     if len(live_encodings) == 0:
