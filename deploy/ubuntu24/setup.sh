@@ -106,17 +106,24 @@ EOF
     chmod 0600 "${CONFIG_DIR}/hostelsense-face.env"
 fi
 
-if [[ "${INITIAL_INSTALL}" -eq 1 ]]; then
+if [[ "${INITIAL_INSTALL}" -eq 0 ]]; then
+    DB_PASSWORD="$(sed -n 's#^DATABASE_URL=postgresql://hostelsense:\([^@]*\)@.*#\1#p' "${CONFIG_DIR}/hostelsense.env")"
+fi
+if [[ -z "${DB_PASSWORD:-}" ]]; then
+    echo "DATABASE_URL in ${CONFIG_DIR}/hostelsense.env does not contain a database password." >&2
+    exit 1
+fi
+if sudo -u postgres psql -tAc "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'hostelsense'" | grep -q 1; then
     sudo -u postgres psql -v ON_ERROR_STOP=1 \
         -v db_password="${DB_PASSWORD}" \
-        -c "DO \$\$ BEGIN
-            IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'hostelsense') THEN
-                CREATE ROLE hostelsense LOGIN PASSWORD :'db_password';
-            END IF;
-        END \$\$;"
-    if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'hostelsense'" | grep -q 1; then
-        sudo -u postgres createdb -O hostelsense hostelsense
-    fi
+        -c "ALTER ROLE hostelsense WITH LOGIN PASSWORD :'db_password';"
+else
+    sudo -u postgres psql -v ON_ERROR_STOP=1 \
+        -v db_password="${DB_PASSWORD}" \
+        -c "CREATE ROLE hostelsense LOGIN PASSWORD :'db_password';"
+fi
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'hostelsense'" | grep -q 1; then
+    sudo -u postgres createdb -O hostelsense hostelsense
 fi
 
 systemctl daemon-reload
