@@ -115,12 +115,10 @@ if [[ -z "${DB_PASSWORD:-}" ]]; then
 fi
 if sudo -u postgres psql -tAc "SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'hostelsense'" | grep -q 1; then
     sudo -u postgres psql -v ON_ERROR_STOP=1 \
-        -v db_password="${DB_PASSWORD}" \
-        -c "ALTER ROLE hostelsense WITH LOGIN PASSWORD :'db_password';"
+        -c "ALTER ROLE hostelsense WITH LOGIN PASSWORD '${DB_PASSWORD}';"
 else
     sudo -u postgres psql -v ON_ERROR_STOP=1 \
-        -v db_password="${DB_PASSWORD}" \
-        -c "CREATE ROLE hostelsense LOGIN PASSWORD :'db_password';"
+        -c "CREATE ROLE hostelsense LOGIN PASSWORD '${DB_PASSWORD}';"
 fi
 if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = 'hostelsense'" | grep -q 1; then
     sudo -u postgres createdb -O hostelsense hostelsense
