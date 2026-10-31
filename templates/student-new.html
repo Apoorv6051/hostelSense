@@ -35,6 +35,7 @@
           <div id="success" class="success-box hidden" role="status">
             Student added to the Block C roster.
           </div>
+          <div id="credentials" class="success-box hidden" role="status"></div>
 
           <form id="student-form" novalidate>
             <div class="form-grid">
@@ -69,7 +70,21 @@
               </div>
               <div class="field">
                 <label for="parent-email">Parent email</label>
-                <input id="parent-email" type="email" placeholder="Optional" />
+                <input id="parent-email" type="email" placeholder="Parent login email" required />
+              </div>
+              <div class="field">
+                <label for="student-password">Student password</label>
+                <div style="display:flex;gap:0.5rem;">
+                  <input id="student-password" type="password" minlength="12" placeholder="At least 12 characters" required />
+                  <button type="button" class="btn-secondary password-toggle" data-target="student-password">Show</button>
+                </div>
+              </div>
+              <div class="field">
+                <label for="parent-password">Parent password</label>
+                <div style="display:flex;gap:0.5rem;">
+                  <input id="parent-password" type="password" minlength="12" placeholder="At least 12 characters" required />
+                  <button type="button" class="btn-secondary password-toggle" data-target="parent-password">Show</button>
+                </div>
               </div>
             </div>
 
@@ -102,6 +117,18 @@
   <script src="{{ url_for('static', filename='js/store.js') }}"></script>
   <script>
     let status = "inside";
+    const credentialsBox = document.getElementById("credentials");
+
+    document.querySelectorAll(".password-toggle").forEach((button) => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById(button.dataset.target);
+        const visible = input.type === "text";
+        input.type = visible ? "password" : "text";
+        button.textContent = visible ? "Show" : "Hide";
+        button.setAttribute("aria-label", `${visible ? "Show" : "Hide"} password`);
+      });
+    });
+
     document.querySelectorAll(".type-pill").forEach((btn) => {
       btn.addEventListener("click", () => {
         status = btn.dataset.status;
@@ -118,12 +145,13 @@
       rollInput.value = rollInput.value.replace(/\D/g, "").slice(0, 13);
     });
 
-    document.getElementById("student-form").addEventListener("submit", (e) => {
+    document.getElementById("student-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const errorBox = document.getElementById("error");
       const successBox = document.getElementById("success");
       errorBox.classList.add("hidden");
       successBox.classList.add("hidden");
+      credentialsBox.classList.add("hidden");
 
       const name = document.getElementById("name").value.trim();
       const roll = rollInput.value.trim();
@@ -132,8 +160,11 @@
       const parentName = document.getElementById("parent-name").value.trim();
       const parentEmail = document.getElementById("parent-email").value.trim();
 
-      if (!name || !roll || !room || !course) {
-        errorBox.textContent = "Please fill name, roll number, room, and course.";
+      const studentPassword = document.getElementById("student-password").value;
+      const parentPassword = document.getElementById("parent-password").value;
+
+      if (!name || !roll || !room || !course || !parentName || !parentEmail || !studentPassword || !parentPassword) {
+        errorBox.textContent = "Please fill all student, parent, and password fields.";
         errorBox.classList.remove("hidden");
         return;
       }
@@ -143,30 +174,49 @@
         return;
       }
 
-      const result = addStudent({
-        id: "stu-" + Date.now(),
-        name,
-        roll,
-        room,
-        floor: Number(document.getElementById("floor").value) || 2,
-        status,
-        course,
-        parentName,
-        parentEmail,
-      });
-
-      if (!result.ok) {
-        errorBox.textContent = result.error || "Could not add this student.";
+      if (studentPassword.length < 12 || parentPassword.length < 12) {
+        errorBox.textContent = "Both passwords must contain at least 12 characters.";
         errorBox.classList.remove("hidden");
         return;
       }
 
+      const response = await fetch("/api/warden/students", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: name,
+          roll,
+          studentPassword,
+          parentName,
+          parentEmail,
+          parentPassword,
+          room,
+          floor: Number(document.getElementById("floor").value) || 2,
+          course,
+          status,
+        }),
+      });
+      const accountResult = await response.json();
+      if (!response.ok) {
+        errorBox.textContent = accountResult.error || "Could not create the accounts.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      addStudent(accountResult.roster);
+
       successBox.classList.remove("hidden");
+      credentialsBox.innerHTML =
+        `<strong>Temporary credentials — copy them now</strong><br>` +
+        `Student login: <strong>${escapeHtml(roll)}</strong> · Password: <strong>${escapeHtml(studentPassword)}</strong><br>` +
+        `Parent login: <strong>${escapeHtml(parentEmail)}</strong> · Password: <strong>${escapeHtml(parentPassword)}</strong><br>` +
+        `<small>These passwords are shown only on this page and are not stored in readable form.</small>`;
+      credentialsBox.classList.remove("hidden");
       document.getElementById("submit-btn").textContent = "Added ✓";
       document.getElementById("submit-btn").disabled = true;
       setTimeout(() => {
         window.location.href = "/students";
-      }, 900);
+      }, 10000);
     });
   </script>
 </body>

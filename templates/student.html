@@ -56,6 +56,10 @@
           <span class="nav-icon" aria-hidden="true">👤</span>
           My profile
         </a>
+        <a class="nav-item" href="/change-password">
+          <span class="nav-icon" aria-hidden="true">🔒</span>
+          Change password
+        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -95,11 +99,11 @@
             <div class="stat-value good">Present</div>
             <div class="stat-meta good">Face verified · 07:42 AM</div>
           </article>
-          <article class="stat-card">
+          <a class="stat-card" href="/attendance" style="text-decoration:none;color:inherit;" aria-label="Open this month's biometric attendance history">
             <div class="stat-label">This month</div>
-            <div class="stat-value">96%</div>
-            <div class="stat-meta">Attendance rate</div>
-          </article>
+            <div class="stat-value" id="month-attendance-rate">—</div>
+            <div class="stat-meta">Biometric attendance · View history →</div>
+          </a>
           <article class="stat-card">
             <div class="stat-label">Open passes</div>
             <div class="stat-value" id="stat-open-passes">0</div>
@@ -409,6 +413,26 @@
     renderStudentNotices();
     renderComplaints();
 
+    fetch("/api/attendance", { cache: "no-store" })
+      .then((response) => response.json().then((records) => ({ response, records })))
+      .then(({ response, records }) => {
+        if (!response.ok) throw new Error(records.error || "Could not load attendance.");
+        const now = new Date();
+        const monthRecords = records.filter((record) => {
+          const date = new Date(`${record.date}T00:00:00`);
+          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        });
+        const weekdaysElapsed = Math.max(1, Array.from({ length: now.getDate() }, (_, index) => {
+          const day = new Date(now.getFullYear(), now.getMonth(), index + 1).getDay();
+          return day !== 0 && day !== 6;
+        }).filter(Boolean).length);
+        document.getElementById("month-attendance-rate").textContent =
+          Math.round((monthRecords.length / weekdaysElapsed) * 100) + "%";
+      })
+      .catch(() => {
+        document.getElementById("month-attendance-rate").textContent = "—";
+      });
+
     // Mobile sidebar
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -466,7 +490,8 @@
       );
     });
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
       try {
         sessionStorage.removeItem("hs_student");
       } catch (_) {}

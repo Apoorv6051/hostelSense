@@ -1,0 +1,12 @@
+.git
+.gitignore
+.env
+.venv
+venv
+instance
+__pycache__
+*.pyc
+face-service/venv
+face-service/known_faces
+face-service/temp_capture.jpg
+face-service/encodings.json

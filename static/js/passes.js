@@ -2,36 +2,7 @@
 
 const HS_PASSES_KEY = "hs_passes";
 
-const DEFAULT_PASSES = [
-  {
-    id: "gp-demo-1",
-    studentName: "Aarav Sharma",
-    roll: "2401641520038",
-    type: "home",
-    typeLabel: "Home visit",
-    destination: "Home — Lucknow",
-    reason: "Weekend visit with family",
-    from: "2026-07-26T10:00",
-    to: "2026-07-27T20:00",
-    parentStatus: "approved",
-    wardenStatus: "pending",
-    createdAt: "2026-07-24T09:00:00.000Z",
-  },
-  {
-    id: "gp-demo-2",
-    studentName: "Aarav Sharma",
-    roll: "2401641520038",
-    type: "outing",
-    typeLabel: "City outing",
-    destination: "City mall",
-    reason: "Personal shopping",
-    from: "2026-07-18T16:00",
-    to: "2026-07-18T20:30",
-    parentStatus: "approved",
-    wardenStatus: "approved",
-    createdAt: "2026-07-17T11:00:00.000Z",
-  },
-];
+const DEFAULT_PASSES = [];
 
 function loadPasses() {
   try {

@@ -1,7 +1,16 @@
 venv/
+.venv/
+face-service/venv/
 __pycache__/
 *.pyc
 .env
 instance/
 *.db
-migrations/
+
+# Local testing and development artifacts
+_check_prototype.py
+test_*.py
+*_test.py
+face-service/test-camera.html
+face-service/temp_capture.jpg
+face-service/known_faces/test.jpg

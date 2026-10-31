@@ -46,6 +46,10 @@
           <span class="nav-icon" aria-hidden="true">➕</span>
           Add student
         </a>
+        <a class="nav-item" href="/change-password">
+          <span class="nav-icon" aria-hidden="true">🔒</span>
+          Change password
+        </a>
         <a class="nav-item" href="/warden/approvals">
           <span class="nav-icon" aria-hidden="true">🎫</span>
           Approvals
@@ -69,7 +73,7 @@
           <div class="avatar" id="avatar">RV</div>
           <div class="user-meta">
             <strong id="sidebar-name">R. Verma</strong>
-            <span id="sidebar-email">warden@college.edu</span>
+            <span id="sidebar-email"></span>
           </div>
         </div>
         <button type="button" class="btn-logout" id="logout-btn">Log out</button>
@@ -99,13 +103,13 @@
         <section class="stats" aria-label="Hostel stats" id="headcount">
           <article class="stat-card">
             <div class="stat-label">Students inside</div>
-            <div class="stat-value good">118</div>
-            <div class="stat-meta good">of 124 total · Block C</div>
+            <div class="stat-value good" id="stat-inside">0</div>
+            <div class="stat-meta good" id="stat-total-meta">of 0 total · Block C</div>
           </article>
           <article class="stat-card">
             <div class="stat-label">Currently out</div>
-            <div class="stat-value warn">6</div>
-            <div class="stat-meta warn">With approved gate passes</div>
+            <div class="stat-value warn" id="stat-out">0</div>
+            <div class="stat-meta warn">Currently outside</div>
           </article>
           <article class="stat-card">
             <div class="stat-label">Passes to review</div>
@@ -125,35 +129,8 @@
               <h2>Block C headcount</h2>
               <a class="link-sm" href="/students">View roster</a>
             </div>
-            <ul class="timeline">
-              <li>
-                <div class="time">Floor 1</div>
-                <div class="event">
-                  <strong>32 / 32 inside <span class="tag in">FULL</span></strong>
-                  <span>Last scan sweep · 07:55 AM</span>
-                </div>
-              </li>
-              <li>
-                <div class="time">Floor 2</div>
-                <div class="event">
-                  <strong>29 / 32 inside</strong>
-                  <span>3 out on approved passes</span>
-                </div>
-              </li>
-              <li>
-                <div class="time">Floor 3</div>
-                <div class="event">
-                  <strong>30 / 32 inside</strong>
-                  <span>2 out · medical + outing</span>
-                </div>
-              </li>
-              <li>
-                <div class="time">Floor 4</div>
-                <div class="event">
-                  <strong>27 / 28 inside</strong>
-                  <span>1 late return flag overnight (cleared)</span>
-                </div>
-              </li>
+            <ul class="timeline" id="floor-headcount">
+              <li class="empty-state">Loading headcount…</li>
             </ul>
           </section>
 
@@ -212,7 +189,7 @@
   <script>
     const warden = {
       name: "R. Verma",
-      email: "warden@college.edu",
+      email: "",
       initials: "RV",
     };
 
@@ -261,6 +238,44 @@
       document.getElementById("notif-badge").textContent = String(total);
       document.getElementById("notif-badge").style.display = total ? "grid" : "none";
     }
+
+    function renderHeadcount(summary) {
+      document.getElementById("stat-inside").textContent = String(summary.inside);
+      document.getElementById("stat-out").textContent = String(summary.out);
+      document.getElementById("stat-total-meta").textContent =
+        `of ${summary.total} total · Block C`;
+      const floorList = document.getElementById("floor-headcount");
+      if (!summary.floors.length) {
+        floorList.innerHTML = `<li class="empty-state">No students have been added yet.</li>`;
+        return;
+      }
+      floorList.innerHTML = summary.floors.map((floor) => {
+        const out = floor.total - floor.inside;
+        const full = out === 0;
+        return `<li>
+          <div class="time">Floor ${floor.floor}</div>
+          <div class="event">
+            <strong>${floor.inside} / ${floor.total} inside${full ? ' <span class="tag in">FULL</span>' : ""}</strong>
+            <span>${out ? `${out} currently out` : "Everyone inside"}</span>
+          </div>
+        </li>`;
+      }).join("");
+    }
+
+    async function loadHeadcount() {
+      try {
+        const response = await fetch("/api/warden/headcount", { cache: "no-store" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load headcount.");
+        renderHeadcount(result);
+      } catch (error) {
+        document.getElementById("floor-headcount").innerHTML =
+          `<li class="empty-state">${escapeHtml(error.message)}</li>`;
+      }
+    }
+
+    loadHeadcount();
+    window.setInterval(loadHeadcount, 15000);
 
     function renderPasses() {
       const list = loadPasses();
@@ -499,7 +514,8 @@
       showToast(bits.join(" and ") + " need warden approval.");
     });
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
       try {
         sessionStorage.removeItem("hs_warden");
       } catch (_) {}

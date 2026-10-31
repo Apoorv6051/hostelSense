@@ -76,13 +76,15 @@
 
   <script src="{{ url_for('static', filename='js/store.js') }}"></script>
   <script>
-    const students = loadStudents();
+    let students = loadStudents();
     let filter = "all";
     let query = "";
 
-    document.getElementById("stat-total").textContent = String(students.length);
-    document.getElementById("stat-in").textContent = String(students.filter((s) => s.status === "inside").length);
-    document.getElementById("stat-out").textContent = String(students.filter((s) => s.status === "out").length);
+    function updateStats() {
+      document.getElementById("stat-total").textContent = String(students.length);
+      document.getElementById("stat-in").textContent = String(students.filter((s) => s.status === "inside").length);
+      document.getElementById("stat-out").textContent = String(students.filter((s) => s.status === "out").length);
+    }
 
     function render() {
       const q = query.trim().toLowerCase();
@@ -129,7 +131,21 @@
       query = e.target.value;
       render();
     });
-    render();
+    async function loadRoster() {
+      try {
+        const response = await fetch("/api/warden/students", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        students = await response.json();
+        localStorage.setItem("hs_students", JSON.stringify(students));
+      } catch (_) {
+        students = loadStudents();
+      }
+      updateStats();
+      render();
+    }
+
+    updateStats();
+    loadRoster();
   </script>
 </body>
 </html>

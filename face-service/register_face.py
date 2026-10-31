@@ -28,4 +28,4 @@ def register_student(roll_number, image_path):
 
 
 if __name__ == "__main__":
-    register_student("2401641520038", "known_faces/aarav.jpg")
+    print("Provide a student's roll number and enrollment image to register a face.")

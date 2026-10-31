@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelSense — Child attendance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}" />
+</head>
+<body>
+  <div class="app" style="grid-template-columns: 1fr;">
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Biometric attendance</h1>
+          <p id="student-label">Your child's face-verified attendance history</p>
+        </div>
+        <div class="topbar-right">
+          <a class="btn-secondary" href="/parent">← Back to parent portal</a>
+        </div>
+      </header>
+      <main class="content">
+        <section class="stats" aria-label="Monthly attendance summary">
+          <article class="stat-card">
+            <div class="stat-label">Attendance this month</div>
+            <div class="stat-value" id="month-rate">—</div>
+            <div class="stat-meta">Face-verified weekdays</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-label">Verified check-ins</div>
+            <div class="stat-value good" id="month-count">0</div>
+            <div class="stat-meta">Current month</div>
+          </article>
+        </section>
+        <section class="card">
+          <div class="card-head"><h2>Biometric history</h2></div>
+          <ul class="list" id="attendance-list">
+            <li class="empty-state">Loading attendance…</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script>
+    function escapeHtml(value) {
+      return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    function formatDate(value) {
+      return new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
+        weekday: "short", month: "short", day: "numeric", year: "numeric"
+      });
+    }
+    fetch("/api/parent/attendance", { cache: "no-store" })
+      .then((response) => response.json().then((result) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (!response.ok) throw new Error(result.error || "Could not load attendance.");
+        document.getElementById("student-label").textContent =
+          `${result.student.name} · ${result.student.roll}`;
+        const now = new Date();
+        const records = result.records;
+        const monthRecords = records.filter((record) => {
+          const date = new Date(`${record.date}T00:00:00`);
+          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        });
+        const weekdaysElapsed = Math.max(1, Array.from({ length: now.getDate() }, (_, index) => {
+          const day = new Date(now.getFullYear(), now.getMonth(), index + 1).getDay();
+          return day !== 0 && day !== 6;
+        }).filter(Boolean).length);
+        document.getElementById("month-count").textContent = String(monthRecords.length);
+        document.getElementById("month-rate").textContent =
+          Math.round((monthRecords.length / weekdaysElapsed) * 100) + "%";
+        document.getElementById("attendance-list").innerHTML = records.length
+          ? records.map((record) => `<li class="list-item">
+              <div class="list-item-main">
+                <strong>${escapeHtml(formatDate(record.date))}</strong>
+                <span>${escapeHtml(record.time)} · Face verified · Evening headcount</span>
+              </div>
+              <span class="chip approved">Verified</span>
+            </li>`).join("")
+          : `<li class="empty-state">No biometric attendance has been recorded yet.</li>`;
+      })
+      .catch((error) => {
+        document.getElementById("attendance-list").innerHTML =
+          `<li class="empty-state">${escapeHtml(error.message)}</li>`;
+      });
+  </script>
+</body>
+</html>

@@ -61,7 +61,7 @@
 
         <section class="card">
           <div class="card-head">
-            <h2>Daily log</h2>
+            <h2>Biometric history</h2>
           </div>
           <ul class="list" id="day-list"></ul>
         </section>
@@ -81,6 +81,62 @@
       }
     } catch (_) {}
 
+    async function loadBiometricHistory() {
+      const response = await fetch("/api/attendance", { cache: "no-store" });
+      const records = await response.json();
+      if (!response.ok) throw new Error(records.error || "Could not load attendance.");
+      return records;
+    }
+
+    function renderHistory(records) {
+      const now = new Date();
+      const monthRecords = records.filter((record) => {
+        const date = new Date(`${record.date}T00:00:00`);
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      });
+      const weekdaysElapsed = Math.max(1, Array.from({ length: now.getDate() }, (_, index) => {
+        const day = new Date(now.getFullYear(), now.getMonth(), index + 1).getDay();
+        return day !== 0 && day !== 6;
+      }).filter(Boolean).length);
+      document.getElementById("stat-present").textContent = String(monthRecords.length);
+      document.getElementById("stat-late").textContent = "—";
+      document.getElementById("stat-absent").textContent = "—";
+      document.getElementById("stat-rate").textContent =
+        Math.round((monthRecords.length / weekdaysElapsed) * 100) + "%";
+
+      document.getElementById("week-grid").innerHTML = monthRecords.length
+        ? monthRecords.map((record) => {
+            const d = new Date(`${record.date}T00:00:00`);
+            return `<div class="day-cell present">
+              <span class="dow">${escapeHtml(d.toLocaleDateString(undefined, { weekday: "short" }))}</span>
+              <span class="dom">${d.getDate()}</span>
+              <span class="chip approved">Verified</span>
+            </div>`;
+          }).join("")
+        : `<p class="empty-state">No biometric attendance has been recorded this month.</p>`;
+
+      document.getElementById("day-list").innerHTML = records.length
+        ? records.map((record) => `<li class="list-item list-item-stack">
+            <div class="list-item-top">
+              <div class="list-item-main">
+                <strong>${escapeHtml(formatDay(record.date))}</strong>
+                <div class="meta-row">
+                  <span class="meta-pill">${escapeHtml(record.time)} · Face verified</span>
+                  <span class="meta-pill">Evening headcount</span>
+                </div>
+              </div>
+              <span class="chip approved">Verified</span>
+            </div>
+          </li>`).join("")
+        : `<li class="empty-state">No biometric check-ins yet. <a href="/mark-attendance">Mark attendance</a></li>`;
+    }
+
+    loadBiometricHistory().then(renderHistory).catch((error) => {
+      document.getElementById("day-list").innerHTML =
+        `<li class="empty-state">${escapeHtml(error.message)}</li>`;
+    });
+
+    /*
     const days = loadAttendance(student.roll);
     const present = days.filter((d) => d.status === "present").length;
     const late = days.filter((d) => d.status === "late").length;
@@ -130,6 +186,7 @@
         </li>`;
       })
       .join("");
+    */
   </script>
 </body>
 </html>

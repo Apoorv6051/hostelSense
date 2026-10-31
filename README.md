@@ -13,7 +13,7 @@ Built with a plain HTML/CSS/JavaScript frontend, a Flask + SQLite backend, and a
 - [Architecture](#architecture)
 - [Project structure](#project-structure)
 - [Getting started](#getting-started)
-- [Demo accounts](#demo-accounts)
+- [Account setup](#account-setup)
 - [Pages](#pages)
 - [API reference](#api-reference)
 - [Face verification service](#face-verification-service)
@@ -89,7 +89,7 @@ Built with a plain HTML/CSS/JavaScript frontend, a Flask + SQLite backend, and a
 └──────────────────────┘
 ```
 
-The frontend calls the API and caches results in `localStorage`. If the server is unreachable, most pages fall back to the cached data so the demo keeps working.
+The frontend calls the API and caches results in `localStorage`. If the server is unreachable, pages use the locally cached data when available.
 
 ---
 
@@ -99,7 +99,7 @@ The frontend calls the API and caches results in `localStorage`. If the server i
 hostelSense/
 ├── app.py                  # Flask app: models, page routes, JSON API
 ├── run.py                  # Loads .env and starts the app
-├── seed.py                 # Resets the database and loads demo data
+├── seed.py                 # Resets the database without creating accounts
 ├── requirements.txt
 ├── .env.example
 ├── start-project.bat       # Windows: starts both servers
@@ -162,11 +162,121 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env        # Windows: copy .env.example .env
 
-python seed.py              # creates the database with demo data
+python seed.py              # creates an empty database
 python run.py               # starts the site
 ```
 
 Open **http://127.0.0.1:5000**
+
+> The app uses SQLite by default (`sqlite:///hostelsense.db`, created in `instance/`).
+> Set `DATABASE_URL` to PostgreSQL for Azure production and replace `SECRET_KEY`
+> with a long random value. Set `SESSION_COOKIE_SECURE=1` when serving over HTTPS.
+
+#### Production deployment
+
+The repository includes a production `Dockerfile` and `Procfile`. The container
+uses Gunicorn and listens on the platform-provided `PORT` (8080 locally in the
+container). Configure these variables in the hosting platform; do not commit a
+`.env` file:
+
+```env
+DATABASE_URL=postgresql://user:password@host:5432/hostelsense
+SECRET_KEY=<long-random-value>
+SESSION_COOKIE_SECURE=1
+FACE_SERVICE_URL=https://your-face-service.example.com
+FACE_SERVICE_TOKEN=<same-secret-configured-on-the-face-service>
+```
+
+The `/healthz` endpoint returns `{"status":"ok"}` and can be used as the
+platform health probe. Use PostgreSQL or another persistent database in
+production; the default SQLite database is intended for local development.
+The `/readyz` endpoint verifies database connectivity. The Render blueprint
+uses it as the application health check and runs `flask --app app db upgrade`
+before Gunicorn starts.
+
+The face service is deployed separately. Configure the same random
+`FACE_SERVICE_TOKEN` on both services, set `ALLOWED_ORIGINS` to the main
+application origin if browser access is ever enabled, and keep the service
+behind HTTPS. The main application proxies face verification so the browser
+never receives the service token.
+
+#### Render deployment checklist
+
+1. Push this repository to GitHub and create a Render Blueprint from
+   `render.yaml`.
+2. Confirm the managed PostgreSQL database is created and `DATABASE_URL` is
+   connected to the web service.
+3. Set a random shared `FACE_SERVICE_TOKEN` on both Render services.
+4. Set `FACE_SERVICE_URL` on the main service to the face-service HTTPS URL.
+5. Set `ADMIN_SETUP_KEY` temporarily, create the first warden, then remove the
+   variable and restart the service.
+6. Configure SMTP variables for password reset email.
+7. Register face encodings using a persistent encrypted storage strategy before
+   enabling attendance. The included JSON file is suitable only for local or
+   single-instance staging.
+8. Verify `/healthz`, `/readyz`, login, student/parent provisioning, attendance,
+   gate passes, visitor QR flows, and password reset in staging.
+9. Enable domain HTTPS and confirm camera permissions from the deployed domain.
+
+Do not use `seed.py` against production. Apply schema changes with:
+
+```bash
+flask --app app db upgrade
+```
+
+### 1.1 Create accounts
+
+Accounts use securely hashed passwords and server-side sessions. No account is
+created automatically. Create the first warden account from the project root:
+
+```bash
+python create_user.py --role warden --email warden@your-hostel.example --name "Hostel Warden"
+```
+
+The command prompts for a password and requires at least 12 characters. Create
+student and parent accounts similarly:
+
+```bash
+python create_user.py --role student --roll 1234567890123 --name "Student Name"
+python create_user.py --role parent --email parent@your-hostel.example --name "Parent Name"
+```
+
+The login API, application pages, and data APIs require an active authenticated
+session. Access is restricted by role.
+
+If all warden accounts have been deleted, set a temporary `ADMIN_SETUP_KEY` in
+the environment and create the first warden with the recovery endpoint:
+
+```bash
+curl -X POST http://127.0.0.1:5000/api/admin/wardens ^
+  -H "Content-Type: application/json" ^
+  -H "X-Admin-Setup-Key: your-bootstrap-key" ^
+  -d "{\"name\":\"Hostel Warden\",\"email\":\"warden@example.com\",\"password\":\"a-long-password-of-12\"}"
+```
+
+The endpoint works only when no active warden exists. Remove
+`ADMIN_SETUP_KEY` after recovery. A warden can then open `/student-new` to
+create a student login and its associated parent login; both passwords must be
+at least 12 characters.
+
+### 1.2 Password reset email
+
+Password reset links are sent through SMTP and expire after 10 minutes. Configure
+these environment variables in Azure App Service (use Key Vault references for
+the SMTP password):
+
+```env
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USERNAME=your-smtp-username
+SMTP_PASSWORD=your-smtp-password
+SMTP_USE_TLS=1
+MAIL_FROM=no-reply@example.com
+RESET_TOKEN_MINUTES=10
+```
+
+Reset tokens are stored only as SHA-256 hashes, are single-use, and never reveal
+whether an account exists in the reset response.
 
 > The app uses SQLite by default (`sqlite:///hostelsense.db`, created in `instance/`). The database URL in `.env.example` points to PostgreSQL but is not used by the current `app.py`.
 
@@ -183,11 +293,13 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
-python register_face.py     # registers the demo student from known_faces/aarav.jpg
+python register_face.py     # register an enrolled student's face
 python app.py               # starts on http://127.0.0.1:5001
 ```
 
-Only the attendance page (`/mark-attendance`) needs this service. Everything else works without it.
+Only the attendance page (`/mark-attendance`) needs this service. Set
+`FACE_SERVICE_URL` on the main application to the public HTTPS URL of the
+deployed face service. Everything else works without it.
 
 ### 3. Windows shortcut
 
@@ -195,15 +307,10 @@ Only the attendance page (`/mark-attendance`) needs this service. Everything els
 
 ---
 
-## Demo accounts
+## Account setup
 
-| Role | Login | Password |
-|---|---|---|
-| Student | `2401641520038` | `student123` |
-| Parent | `suresh.parent@email.com` | `parent123` |
-| Warden | `warden@college.edu` | `warden123` |
-
-The credentials are pre-filled when you pick a role on the sign-in page.
+No student, parent, or warden accounts are created by default. Configure production
+authentication and provision accounts through the identity system used for deployment.
 
 ### Try the full flow
 
@@ -223,7 +330,7 @@ The credentials are pre-filled when you pick a role on the sign-in page.
 | URL | Description |
 |---|---|
 | `/` | Login |
-| `/forgot-password` | Password reset (demo) |
+| `/forgot-password` | Password reset |
 | `/student` | Student dashboard |
 | `/gate-pass` | Request a gate pass |
 | `/attendance` | Attendance history |
@@ -268,8 +375,8 @@ Content-Type: application/json
 
 {
   "id": "gp-1700000000000",
-  "studentName": "Aarav Sharma",
-  "roll": "2401641520038",
+  "studentName": "Student name",
+  "roll": "student-roll-number",
   "type": "outing",
   "typeLabel": "City outing",
   "destination": "City mall",
@@ -309,7 +416,7 @@ Runs separately on port **5001**.
 **Response**
 
 ```json
-{ "matched": true, "distance": 0.31, "roll_number": "2401641520038" }
+{ "matched": true, "distance": 0.31, "roll_number": "student-roll-number" }
 ```
 
 - A face is a match when the distance to the stored encoding is `<= 0.45`.
@@ -339,12 +446,13 @@ Runs separately on port **5001**.
 
 This is a college project / prototype. Before real use, these need attention:
 
-- **Authentication is demo-level.** Credentials are checked in client-side JavaScript, and the API has no login or role checks.
+- **Authentication must be configured for production.** The current frontend does not provide a production identity provider, and API role checks must be added before deployment.
 - **Complaints, notices, attendance and the roster are stored only in the browser**, so they are not shared between users or devices.
 - **The student ID QR (`/qr`) is a visual placeholder** and cannot be scanned. Visitor QR codes are real.
 - **The geofence API is not yet used by any page.**
 - **Evening attendance is always open** (testing mode), and face verification has no liveness check.
-- **The face service URL is hard-coded** to `http://127.0.0.1:5001` in `mark-attendance.html`.
+- Face verification requires a separately deployed face service configured with
+  `FACE_SERVICE_URL`; it is not included in the main application container.
 - Dashboards refresh by polling every 15 seconds instead of real-time updates.
 - `requirements.txt` lists packages (PostgreSQL driver, JWT, Migrate, CORS) that the current code does not use yet.
 
@@ -361,6 +469,7 @@ This is a college project / prototype. Before real use, these need attention:
 - [ ] PostgreSQL and database migrations
 - [ ] Automated tests
 - [ ] Move the frontend to React components
+- [x] Production Gunicorn/Docker entrypoint and configurable face-service URL
 - [ ] HTTPS deployment (the camera requires a secure context outside `localhost`)
 
 ---

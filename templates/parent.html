@@ -51,6 +51,10 @@
           <span class="nav-icon" aria-hidden="true">📢</span>
           Notices
         </a>
+        <a class="nav-item" href="/change-password">
+          <span class="nav-icon" aria-hidden="true">🔒</span>
+          Change password
+        </a>
       </nav>
 
       <div class="sidebar-footer">
@@ -58,7 +62,7 @@
           <div class="avatar" id="avatar">SP</div>
           <div class="user-meta">
             <strong id="sidebar-name">Suresh Parent</strong>
-            <span id="sidebar-email">suresh.parent@email.com</span>
+            <span id="sidebar-email"></span>
           </div>
         </div>
         <button type="button" class="btn-logout" id="logout-btn">Log out</button>
@@ -91,11 +95,11 @@
             <div class="stat-value good">Inside</div>
             <div class="stat-meta good">Last gate scan · 07:42 AM</div>
           </article>
-          <article class="stat-card">
+          <a class="stat-card" href="/parent/attendance" style="text-decoration:none;color:inherit;" aria-label="Open this month's biometric attendance history">
             <div class="stat-label">Attendance (month)</div>
-            <div class="stat-value">96%</div>
-            <div class="stat-meta">Face-verified entries</div>
-          </article>
+            <div class="stat-value" id="month-attendance-rate">—</div>
+            <div class="stat-meta">Face-verified entries · View history →</div>
+          </a>
           <article class="stat-card">
             <div class="stat-label">Passes to review</div>
             <div class="stat-value" id="stat-pending">0</div>
@@ -116,27 +120,27 @@
             <div class="room-grid">
               <div class="room-cell">
                 <span>Name</span>
-                <strong>Aarav Sharma</strong>
+                <strong id="child-name">Loading…</strong>
               </div>
               <div class="room-cell">
                 <span>Roll number</span>
-                <strong>2401641520038</strong>
+                <strong id="child-roll">—</strong>
               </div>
               <div class="room-cell">
                 <span>Course</span>
-                <strong>B.Tech CSE · Year 2</strong>
+                <strong id="child-course">—</strong>
               </div>
               <div class="room-cell">
                 <span>Hostel room</span>
-                <strong>C-214 · Block C</strong>
+                <strong id="child-room">—</strong>
               </div>
               <div class="room-cell">
                 <span>Today’s check-in</span>
-                <strong>07:42 AM · Main gate</strong>
+                <strong id="child-check-in">—</strong>
               </div>
               <div class="room-cell">
                 <span>Evening headcount</span>
-                <strong>Due 9:00 PM</strong>
+                <strong id="child-evening">—</strong>
               </div>
             </div>
           </section>
@@ -194,7 +198,7 @@
   <script>
     const parent = {
       name: "Suresh Parent",
-      email: "suresh.parent@email.com",
+      email: "",
       initials: "SP",
       childRoll: "2401641520038",
     };
@@ -212,6 +216,28 @@
     document.getElementById("sidebar-name").textContent = parent.name;
     document.getElementById("sidebar-email").textContent = parent.email;
     document.getElementById("avatar").textContent = parent.initials;
+
+    function renderChild(profile) {
+      parent.childRoll = profile.roll;
+      document.getElementById("child-name").textContent = profile.name;
+      document.getElementById("child-roll").textContent = profile.roll;
+      document.getElementById("child-course").textContent = profile.course;
+      document.getElementById("child-room").textContent = `${profile.room} · Block C`;
+      document.getElementById("child-check-in").textContent =
+        profile.status === "inside" ? "Inside hostel · latest roster status" : "Currently out";
+      document.getElementById("child-evening").textContent = "Due 9:00 PM";
+      document.querySelector(".topbar-left p").textContent =
+        `${profile.name} · ${profile.room} · Block C`;
+    }
+
+    function renderChildUnavailable(message) {
+      document.getElementById("child-name").textContent = message;
+      document.getElementById("child-roll").textContent = "—";
+      document.getElementById("child-course").textContent = "—";
+      document.getElementById("child-room").textContent = "—";
+      document.getElementById("child-check-in").textContent = "—";
+      document.getElementById("child-evening").textContent = "—";
+    }
 
     const toast = document.getElementById("toast");
     let toastTimer;
@@ -307,10 +333,23 @@
         .replace(/"/g, "&quot;");
     }
 
-    fetchPassesFromDB(parent.childRoll).then(renderPasses);
-    renderPasses();
+    fetch("/api/parent/child", { cache: "no-store" })
+      .then((response) => response.json().then((result) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (!response.ok) throw new Error(result.error || "No linked student found.");
+        renderChild(result);
+        fetchPassesFromDB(parent.childRoll).then(renderPasses);
+        renderPasses();
+        syncVisitorsFromDB(parent.childRoll).then(renderParentVisitors);
+        renderParentVisitors();
+      })
+      .catch((error) => {
+        renderChildUnavailable(error.message);
+        renderPasses();
+        renderParentVisitors();
+      });
     window.setInterval(() => {
-      fetchPassesFromDB(parent.childRoll).then(renderPasses);
+      if (parent.childRoll) fetchPassesFromDB(parent.childRoll).then(renderPasses);
     }, 15000);
 
     function renderParentVisitors() {
@@ -419,6 +458,26 @@
       syncVisitorsFromDB(parent.childRoll).then(renderParentVisitors);
     }, 15000);
 
+    fetch("/api/parent/attendance", { cache: "no-store" })
+      .then((response) => response.json().then((result) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (!response.ok) throw new Error(result.error || "Could not load attendance.");
+        const now = new Date();
+        const monthRecords = result.records.filter((record) => {
+          const date = new Date(`${record.date}T00:00:00`);
+          return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+        });
+        const weekdaysElapsed = Math.max(1, Array.from({ length: now.getDate() }, (_, index) => {
+          const day = new Date(now.getFullYear(), now.getMonth(), index + 1).getDay();
+          return day !== 0 && day !== 6;
+        }).filter(Boolean).length);
+        document.getElementById("month-attendance-rate").textContent =
+          Math.round((monthRecords.length / weekdaysElapsed) * 100) + "%";
+      })
+      .catch(() => {
+        document.getElementById("month-attendance-rate").textContent = "—";
+      });
+
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     document.getElementById("menu-btn").addEventListener("click", () => {
@@ -457,7 +516,8 @@
       showToast(n ? `${n} gate pass(es) need your approval.` : "No pending approvals.");
     });
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
+    document.getElementById("logout-btn").addEventListener("click", async () => {
+      await fetch("/api/auth/logout", { method: "POST" });
       try {
         sessionStorage.removeItem("hs_parent");
       } catch (_) {}

@@ -169,23 +169,6 @@ def verify_location():
 # --- Database Initialization on App Start ---
 with app.app_context():
     db.create_all()
-    # Seed an initial sample pass if database is empty
-    if not GatePass.query.first():
-        seed_pass = GatePass(
-            id="gp-101",
-            student_name="Aarav Sharma",
-            roll="2401641520038",
-            pass_type="home",
-            type_label="Home visit",
-            destination="Lucknow",
-            reason="Family function",
-            leaving_from="2026-09-12T17:00",
-            return_by="2026-09-14T20:00",
-            parent_status="approved",
-            warden_status="pending"
-        )
-        db.session.add(seed_pass)
-        db.session.commit()
 
 if __name__ == "__main__":
     app.run(debug=True)

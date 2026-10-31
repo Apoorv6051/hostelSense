@@ -107,20 +107,37 @@
         formData.append("roll_number", student.roll);
         formData.append("image", blob, "evening-attendance.jpg");
         try {
-          const response = await fetch("http://127.0.0.1:5001/verify-face", { method: "POST", body: formData });
+          const response = await fetch("/api/verify-face", { method: "POST", body: formData });
           const result = await response.json();
           if (!response.ok) throw new Error(result.error || "Verification service error");
           if (!result.matched) throw new Error(result.reason || "Face did not match the registered photo.");
 
           const now = new Date();
-          addAttendance({
+          const attendanceRecord = {
             id: `attendance-${student.roll}-${now.toISOString().slice(0, 10)}`,
             roll: student.roll,
             date: now.toISOString().slice(0, 10),
-            time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            time: now.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }),
             type: "evening",
             verified: true,
+          };
+          const attendanceResponse = await fetch("/api/attendance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              date: attendanceRecord.date,
+              time: attendanceRecord.time,
+            }),
           });
+          const attendanceResult = await attendanceResponse.json();
+          if (!attendanceResponse.ok) {
+            throw new Error(attendanceResult.error || "Could not save attendance.");
+          }
+          addAttendance(attendanceRecord);
           status.className = "face-status success";
           status.textContent = "Face verified. Evening attendance marked.";
           verifyButton.textContent = "Attendance marked";

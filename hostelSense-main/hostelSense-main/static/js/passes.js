@@ -6,22 +6,7 @@ const LOCAL_STORAGE_KEY = "hs_passes_store";
 
 // --- Fallback Default Passes ---
 function defaultPasses() {
-  return [
-    {
-      id: "gp-101",
-      studentName: "Aarav Sharma",
-      roll: "2401641520038",
-      type: "home",
-      typeLabel: "Home visit",
-      destination: "Lucknow",
-      reason: "Family function",
-      from: "2026-09-12T17:00",
-      to: "2026-09-14T20:00",
-      parentStatus: "approved",
-      wardenStatus: "pending",
-      createdAt: new Date().toISOString()
-    }
-  ];
+  return [];
 }
 
 // ==========================================

@@ -144,12 +144,8 @@
         </form>
 
         <p class="form-footnote">
-          Demo credentials appear after you pick a role.
+          Use the account credentials provided by your hostel administrator.
         </p>
-        <div class="demo-hint" id="demo-hint">
-          <span class="demo-tag">Demo</span>
-          <code id="demo-creds">2401641520038 / student123</code>
-        </div>
       </div>
     </main>
   </div>
@@ -160,11 +156,8 @@
         label: "Student",
         idType: "roll",
         fieldLabel: "Roll number",
-        placeholder: "e.g. 2401641520038",
+        placeholder: "Enter your roll number",
         hint: "13-digit college roll number",
-        creds: "2401641520038 / student123",
-        identifier: "2401641520038",
-        password: "student123",
       },
       parent: {
         label: "Parent",
@@ -172,19 +165,13 @@
         fieldLabel: "Email address",
         placeholder: "you@email.com",
         hint: "",
-        creds: "suresh.parent@email.com / parent123",
-        identifier: "suresh.parent@email.com",
-        password: "parent123",
       },
       warden: {
         label: "Warden",
         idType: "email",
         fieldLabel: "Email address",
-        placeholder: "warden@college.edu",
+        placeholder: "Enter your email address",
         hint: "",
-        creds: "warden@college.edu / warden123",
-        identifier: "warden@college.edu",
-        password: "warden123",
       },
     };
 
@@ -192,7 +179,6 @@
 
     const roleButtons = document.querySelectorAll(".role-option");
     const btnText = document.querySelector(".btn-text");
-    const demoCreds = document.getElementById("demo-creds");
     const idLabel = document.getElementById("identifier-label");
     const idInput = document.getElementById("identifier");
     const idHint = document.getElementById("identifier-hint");
@@ -215,11 +201,9 @@
       });
 
       btnText.textContent = `Sign in as ${meta.label}`;
-      demoCreds.textContent = meta.creds;
-
       idLabel.textContent = meta.fieldLabel;
       idInput.placeholder = meta.placeholder;
-      idInput.value = meta.identifier;
+      idInput.value = "";
       idInput.type = isRoll ? "text" : "email";
       idInput.inputMode = isRoll ? "numeric" : "email";
       idInput.maxLength = isRoll ? 13 : 254;
@@ -240,7 +224,7 @@
         idHint.classList.add("hidden");
       }
 
-      passwordInput.value = meta.password;
+      passwordInput.value = "";
       errorBox.classList.add("hidden");
       errorBox.textContent = "";
     }
@@ -263,7 +247,7 @@
       togglePass.setAttribute("aria-label", show ? "Hide password" : "Show password");
     });
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const identifier = idInput.value.trim();
       const password = passwordInput.value;
@@ -279,69 +263,32 @@
       }
 
       if (isRoll && !/^\d{13}$/.test(identifier)) {
-        errorBox.textContent = "Roll number must be exactly 13 digits (e.g. 2401641520038).";
+        errorBox.textContent = "Roll number must be exactly 13 digits.";
         errorBox.classList.remove("hidden");
         return;
       }
 
-      const idMatch = isRoll
-        ? identifier === meta.identifier
-        : identifier.toLowerCase() === meta.identifier.toLowerCase();
-
-      if (idMatch && password === meta.password) {
-        errorBox.classList.add("hidden");
-        btnText.textContent = "Signed in ✓";
-        document.getElementById("btn-submit").classList.add("success");
-
-        const destinations = {
-          student: {
-            key: "hs_student",
-            href: "/student",
-            data: {
-              name: "Aarav Sharma",
-              roll: meta.identifier,
-              initials: "AS",
-              role: "student",
-            },
-          },
-          parent: {
-            key: "hs_parent",
-            href: "/parent",
-            data: {
-              name: "Suresh Parent",
-              email: meta.identifier,
-              initials: "SP",
-              role: "parent",
-            },
-          },
-          warden: {
-            key: "hs_warden",
-            href: "/warden",
-            data: {
-              name: "R. Verma",
-              email: meta.identifier,
-              initials: "RV",
-              role: "warden",
-            },
-          },
-        };
-
-        const dest = destinations[selectedRole];
-        if (dest) {
-          try {
-            sessionStorage.setItem(dest.key, JSON.stringify(dest.data));
-          } catch (_) {}
-          setTimeout(() => {
-            window.location.href = dest.href;
-          }, 700);
-          return;
-        }
-      } else {
-        errorBox.textContent = isRoll
-          ? "Invalid roll number or password. Use the demo details below."
-          : `Invalid ${meta.label.toLowerCase()} credentials. Use the demo details below.`;
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier,
+          password,
+          role: selectedRole,
+          remember: document.getElementById("remember").checked,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        errorBox.textContent = result.error || "Unable to sign in.";
         errorBox.classList.remove("hidden");
+        return;
       }
+
+      sessionStorage.setItem(`hs_${result.user.role}`, JSON.stringify(result.user));
+      btnText.textContent = "Signed in";
+      document.getElementById("btn-submit").classList.add("success");
+      window.location.assign(result.redirect);
     });
 
     applyRole("student");
