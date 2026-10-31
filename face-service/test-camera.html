@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm it's you — HostelSense</title>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #12182a;
+    --line: rgba(255, 255, 255, 0.09);
+    --text: #f5f6fa;
+    --muted: #99a2b8;
+    --faint: #5a6480;
+    --accent: #e8a33d;
+    --accent-ink: #241505;
+    --good: #4fd1a5;
+    --bad: #ef7b83;
+    --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 64px 24px;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 620px;
+  }
+
+  .wordmark {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--faint);
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-size: 34px;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+  }
+
+  .lede {
+    color: var(--muted);
+    font-size: 15.5px;
+    line-height: 1.65;
+    max-width: 52ch;
+    margin-bottom: 36px;
+  }
+
+  .fields {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+  }
+
+  .field {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .field span {
+    display: block;
+    font-size: 12.5px;
+    color: var(--faint);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    color: var(--text);
+    font-size: 16px;
+    font-family: var(--sans);
+    padding: 4px 0 8px;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-bottom-color: var(--accent);
+  }
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+
+  .pane {
+    background: var(--surface);
+    padding: 14px;
+  }
+
+  .pane-label {
+    font-size: 12px;
+    color: var(--faint);
+    margin-bottom: 10px;
+  }
+
+  .pane-frame {
+    aspect-ratio: 4 / 5;
+    background: #05070d;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pane-frame img,
+  .pane-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .pane-frame .empty {
+    color: var(--faint);
+    font-size: 13px;
+    text-align: center;
+    padding: 0 16px;
+  }
+
+  canvas { display: none; }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .verify-btn {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    padding: 13px 26px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: var(--sans);
+    cursor: pointer;
+  }
+
+  .verify-btn:hover { background: #edb35a; }
+  .verify-btn:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  .verify-btn:disabled { background: var(--line); color: var(--faint); cursor: not-allowed; }
+
+  .status {
+    font-size: 14.5px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .status .indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--faint);
+    flex-shrink: 0;
+  }
+
+  .status.pass .indicator { background: var(--good); }
+  .status.fail .indicator { background: var(--bad); }
+  .status.pass { color: var(--good); }
+  .status.fail { color: var(--bad); }
+
+  .detail {
+    font-size: 13px;
+    color: var(--faint);
+    margin-top: 4px;
+  }
+
+  .foot-note {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--faint);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 520px) {
+    body { padding: 40px 18px; }
+    h1 { font-size: 27px; }
+    .compare { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page">
+    <div class="wordmark">HostelSense</div>
+
+    <h1>Confirm it's you</h1>
+    <p class="lede">This check happens right at your room. Look at the camera and press verify — we'll match it against the photo on file and log your attendance automatically.</p>
+
+    <div class="fields">
+      <label class="field">
+        <span>Room</span>
+        <input type="text" id="roomNumber" value="C-214">
+      </label>
+      <label class="field">
+        <span>Roll number</span>
+        <input type="text" id="rollNumber" value="2401641520038">
+      </label>
+    </div>
+
+    <div class="compare">
+      <div class="pane">
+        <div class="pane-label">On file</div>
+        <div class="pane-frame" id="registeredFrame">
+          <img id="registeredImg" alt="Registered photo" style="display:none;">
+          <span class="empty" id="registeredEmpty">No photo found for this roll number yet</span>
+        </div>
+      </div>
+      <div class="pane">
+        <div class="pane-label">Right now</div>
+        <div class="pane-frame">
+          <video id="video" autoplay playsinline muted></video>
+        </div>
+      </div>
+    </div>
+    <canvas id="canvas" width="320" height="240"></canvas>
+
+    <div class="actions">
+      <button class="verify-btn" id="verifyBtn">Verify now</button>
+      <div class="status" id="status" style="display:none;">
+        <span class="indicator"></span>
+        <span id="statusText"></span>
+      </div>
+    </div>
+    <div class="detail" id="detail"></div>
+
+    <p class="foot-note">Matching runs locally on the hostel server using the face_recognition library — no photo leaves the building. If verification fails twice, the warden on duty can confirm attendance manually.</p>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const statusEl = document.getElementById('status');
+    const statusText = document.getElementById('statusText');
+    const detail = document.getElementById('detail');
+    const rollInput = document.getElementById('rollNumber');
+    const registeredImg = document.getElementById('registeredImg');
+    const registeredEmpty = document.getElementById('registeredEmpty');
+
+    // Demo lookup: roll number -> file already saved in known_faces/.
+    // In this test harness the only registered file is aarav.jpg for
+    // roll 2401641520038 — extend this map as more students register.
+    const knownPhotos = {
+      "2401641520038": "known_faces/aarav.jpg"
+    };
+
+    function loadRegisteredPhoto() {
+      const path = knownPhotos[rollInput.value.trim()];
+      if (path) {
+        registeredImg.src = path;
+        registeredImg.style.display = "block";
+        registeredEmpty.style.display = "none";
+      } else {
+        registeredImg.style.display = "none";
+        registeredEmpty.style.display = "block";
+      }
+    }
+
+    rollInput.addEventListener('input', loadRegisteredPhoto);
+    loadRegisteredPhoto();
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { video.srcObject = stream; })
+      .catch(() => {
+        statusEl.style.display = "flex";
+        statusEl.className = "status fail";
+        statusText.innerText = "Camera unavailable";
+      });
+
+    verifyBtn.addEventListener('click', () => {
+      const rollNumber = rollInput.value.trim();
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      verifyBtn.disabled = true;
+      statusEl.style.display = "flex";
+      statusEl.className = "status";
+      statusText.innerText = "Checking...";
+      detail.innerText = "";
+
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append('roll_number', rollNumber);
+        formData.append('image', blob, 'live.jpg');
+
+        fetch('http://127.0.0.1:5001/verify-face', {
+          method: 'POST',
+          body: formData
+        })
+          .then(res => res.json())
+          .then(data => {
+            verifyBtn.disabled = false;
+            if (data.matched) {
+              statusEl.className = "status pass";
+              statusText.innerText = "Verified — attendance marked";
+              detail.innerText = `Match distance ${data.distance.toFixed(3)} for roll ${data.roll_number}`;
+            } else {
+              statusEl.className = "status fail";
+              statusText.innerText = data.reason ? "No face detected — try again" : "Doesn't match the photo on file";
+              detail.innerText = data.distance ? `Match distance ${data.distance.toFixed(3)}` : "";
+            }
+          })
+          .catch(() => {
+            verifyBtn.disabled = false;
+            statusEl.className = "status fail";
+            statusText.innerText = "Couldn't reach the verification server";
+            detail.innerText = "Make sure app.py is running on port 5001.";
+          });
+      }, 'image/jpeg');
+    });
+  </script>
+
+</body>
+</html>
