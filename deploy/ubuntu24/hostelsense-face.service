@@ -1,0 +1,22 @@
+[Unit]
+Description=HostelSense face verification service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hostelsense
+Group=hostelsense
+WorkingDirectory=/opt/hostelsense/face-service
+EnvironmentFile=/etc/hostelsense/hostelsense-face.env
+ExecStart=/opt/hostelsense/.venv/bin/gunicorn --bind 127.0.0.1:5001 --workers 1 --access-logfile - --error-logfile - app:app
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/hostelsense/face-service
+
+[Install]
+WantedBy=multi-user.target

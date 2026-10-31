@@ -1,0 +1,24 @@
+[Unit]
+Description=HostelSense web application
+After=network-online.target postgresql.service hostelsense-face.service
+Wants=network-online.target
+Requires=hostelsense-face.service
+
+[Service]
+Type=simple
+User=hostelsense
+Group=hostelsense
+WorkingDirectory=/opt/hostelsense
+EnvironmentFile=/etc/hostelsense/hostelsense.env
+ExecStartPre=/opt/hostelsense/.venv/bin/flask --app app db upgrade
+ExecStart=/opt/hostelsense/.venv/bin/gunicorn --bind 127.0.0.1:5000 --workers 2 --access-logfile - --error-logfile - run:app
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/hostelsense/instance
+
+[Install]
+WantedBy=multi-user.target
