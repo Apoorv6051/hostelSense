@@ -49,6 +49,7 @@ rsync -a --delete \
     --exclude "instance/*.db" \
     "${REPO_DIR}/" "${APP_DIR}/"
 chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
+install -d -o "${APP_USER}" -g "${APP_USER}" "${APP_DIR}/instance"
 
 if [[ ! -d "${APP_DIR}/.venv" ]]; then
     sudo -u "${APP_USER}" python3.12 -m venv "${APP_DIR}/.venv"
